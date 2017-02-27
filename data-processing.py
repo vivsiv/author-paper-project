@@ -11,40 +11,6 @@ string_replacements = {
 	"[^a-zA-Z ]": ""
 }
 
-def save_obj(obj, out_file_name):
-    with open(out_file_name, 'wb') as f:
-        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
-
-def load_obj(in_file_name):
-    with open(in_file_name, 'rb') as in_file:
-        return pickle.load(in_file)
-
-def standardize_name(name):
-	name_arr = name.split(" ")
-	first_name = name_arr[0]
-	last_name = name_arr[len(name_arr) - 1].lower()
-	middle_name = ""
-	if len(name_arr) == 3:
-		middle_name = name_arr[1].lower()
-	
-	first_initial = first_name[:1]
-	last_initial = last_name[:1]
-	middle_initial = ""
-	if middle_name != "":
-		middle_initial = middle_name[:1]
-	
-	name1 = first_name + " " + last_name
-	name2 = first_initial + " " + last_name
-	name3 = first_name + " " + middle_name + " " + last_name
-	name4 = first_name + " " + middle_initial + " " + last_name
-	name5 = first_initial + " " + middle_initial + " " + last_name
-	
-	if middle_name == "":
-		name3 = first_name + " " + last_name
-		name4 = first_name + " " + last_name
-		name5 = first_initial + " " + last_name
-	return [name1, name2, name3, name4, name5]
-
 def main():
 	train_data = "./data/Train.csv"
 	print "Reading Train.csv from {0}".format(train_data)
@@ -128,7 +94,7 @@ def main():
 	train_out = pd.merge(train_out, has_author_features, how="left", on=["author_id", "paper_id"])
 	train_out = pd.merge(train_out, has_paper_features, how="left", on=["author_id", "paper_id"])
 
-		# Name Edit Distance Features
+	# Name Edit Distance Features
 	name_df = author_join[["author_id", "paper_id", "author_name", "author_name_clean", "paper_author_name", "paper_author_name_clean"]]
 	author_name_splits =  name_df['author_name_clean'].str.split(' ', 1, expand=True)
 	name_df["author_first_name"] = author_name_splits[0]
@@ -176,6 +142,7 @@ def main():
 	# name_join_features["feature_3"] = last_name_dist
 	# train_out = pd.merge(train_out, name_join_features, how="left", on=["author_id", "paper_id"])
 
+
 	# Affiliation Edit Distance Features
 	affiliation_df = author_join[["author_id", "paper_id", "author_affiliation", "author_affiliation_clean", "paper_author_affiliation", "paper_author_affiliation_clean"]]
 
@@ -186,7 +153,6 @@ def main():
 	train_out = pd.merge(train_out, affiliation_features, how="left", on=["author_id", "paper_id"])
 	#Author Publication Year Features
 	
-
 	author_years = paper_join[paper_join.paper_year != 0].groupby(['author_id'], sort=False)['paper_year']
 
 	ays_min = author_years.min().rename("min_pub_year")
