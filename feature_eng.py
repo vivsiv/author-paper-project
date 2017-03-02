@@ -94,7 +94,10 @@ def author_year_features(paper_join, train_out):
 	author_year_stats['author_id'] = author_year_stats.index
 
 	author_year_features = paper_join[["author_id", "paper_id", "paper_year"]].copy()
+
 	author_year_features = pd.merge(author_year_features, author_year_stats, how="left", on="author_id")
+	author_year_features = author_year_features.fillna(0)
+
 	author_year_features["min_year_diff"] = author_year_features["min_pub_year"] - author_year_features["paper_year"]
 	author_year_features["max_year_diff"] = author_year_features["max_pub_year"] - author_year_features["paper_year"]
 	author_year_features["mean_year_diff"] = author_year_features["mean_pub_year"] - author_year_features["paper_year"]
@@ -107,6 +110,7 @@ def author_year_features(paper_join, train_out):
 	return train_out
 
 def co_author_features(author_join, paper_join, train_out):
+	print "Generating co author features"
 	paper_author_groups = paper_join.groupby(["paper_id"], sort=False)["author_id"].agg({"authors":(lambda group: list(group))})
 	paper_author_groups = paper_author_groups.reset_index()
 	paper_author_groups["author_count"] = paper_author_groups.apply(lambda row: len(row["authors"]), axis=1)
@@ -163,10 +167,9 @@ train_out = author_year_features(paper_join, train_out)
 
 train_out = co_author_features(author_join, paper_join, train_out)
 
-train_out.pkl("./pkl/train_features.pkl")
+# train_out.pkl("./pkl/train_features.pkl")
 
-train_out.sort_values(by="author_id").to_csv("./TrainOut.csv", index=False, 
-	columns=["author_id", 
+out_columns=["author_id", 
 		"paper_id", 
 		"has_author_name",
 		"has_author_affiliation",
@@ -189,5 +192,8 @@ train_out.sort_values(by="author_id").to_csv("./TrainOut.csv", index=False,
 		"median_year_diff",
 		"author_count",
 		"wrote_paper"
-	])
+	]
+
+train_out.sort_values(by="author_id").to_csv("./TrainOut.csv", index=False, 
+	columns=out_columns)
 
