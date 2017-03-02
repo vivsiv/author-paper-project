@@ -28,7 +28,7 @@ def has_features(author_join, paper_join, train_out):
 
 def name_features(author_join, train_out):
 	# Name Distance Features
-	print "Generating name_distance features"
+	print "Generating name distance features"
 	name_df = author_join[["author_id", "paper_id", "author_name", "author_name_clean", "paper_author_name", "paper_author_name_clean"]].copy()
 	author_name_splits =  name_df['author_name_clean'].str.split(' ', 1, expand=True)
 	name_df["author_first_name"] = author_name_splits[0]
@@ -66,7 +66,7 @@ def name_features(author_join, train_out):
 
 def affiliation_features(author_join, train_out):
 	# Affiliation Distance Features
-	print "Generating affiliation_distance features"
+	print "Generating affiliation distance features"
 	affiliation_features = author_join[["author_id", "paper_id"]].copy()
 
 	affiliation_features["affiliation_clean_lev_dist"] = author_join.apply(
@@ -82,7 +82,7 @@ def affiliation_features(author_join, train_out):
 
 def author_year_features(paper_join, train_out):
 	# Author Publication Year Features
-	print "Generating publication_year features"
+	print "Generating publication year features"
 	author_years = paper_join[paper_join.paper_year != 0].groupby(['author_id'], sort=False)['paper_year']
 
 	ays_min = author_years.min().rename("min_pub_year")
@@ -164,3 +164,30 @@ train_out = author_year_features(paper_join, train_out)
 train_out = co_author_features(author_join, paper_join, train_out)
 
 train_out.pkl("./pkl/train_features.pkl")
+
+train_out.sort_values(by="author_id").to_csv("./TrainOut.csv", index=False, 
+	columns=["author_id", 
+		"paper_id", 
+		"has_author_name",
+		"has_author_affiliation",
+		"has_paper_title",
+		"has_paper_year",
+		"has_conference_id",
+		"has_journal_id",
+		"has_paper_keyword",
+		"name_clean_lev_dist",
+		"first_name_lev_dist",
+		"last_name_lev_dist",
+		"name_clean_jaro_dist",
+		"first_name_jaro_dist",
+		"last_name_jaro_dist",
+		"affiliation_clean_lev_dist",
+		"affiliation_clean_jaro_dist",
+		"min_year_diff",
+		"max_year_diff",
+		"mean_year_diff",
+		"median_year_diff",
+		"author_count",
+		"wrote_paper"
+	])
+
