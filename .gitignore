@@ -1,4 +1,5 @@
 data/
 obj/
+pkl/
 *.csv
 *.pkl
