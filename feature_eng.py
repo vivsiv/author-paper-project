@@ -106,12 +106,40 @@ def author_year_features(paper_join, train_out):
 
 	return train_out
 
-def co_author_features(paper_join, train_out):
-	co_authors = paper_join.groupby(["paper_id"], sort=False)["author_id"].agg({"co_authors":(lambda group: list(group))})
-	co_authors["paper_id"] = co_authors.index
-	co_authors["num_authors"] = co_authors.apply(lambda row: len(row["co_authors"]), axis=1)
+def co_author_features(author_join, paper_join, train_out):
+	paper_author_groups = paper_join.groupby(["paper_id"], sort=False)["author_id"].agg({"authors":(lambda group: list(group))})
+	paper_author_groups = paper_author_groups.reset_index()
+	paper_author_groups["author_count"] = paper_author_groups.apply(lambda row: len(row["authors"]), axis=1)
+	# paper_author_groups = pd.merge(paper_author_groups, paper_join[["paper_id", "author_id"]], how="left", on="paper_id")
+
+	# co_authors = pd.DataFrame(paper_author_groups.authors.tolist(), index=[paper_author_groups.paper_id, paper_author_groups.author_id]).stack()
+	# co_authors = co_authors.reset_index()[["paper_id", "author_id", 0]]
+	# co_authors = co_authors.rename(columns={0:"co_author_id"})
+	# co_authors["co_author_id"] = co_authors["co_author_id"].astype(int)
+	# co_authors = co_authors[co_authors.author_id != co_authors.co_author_id]
+
+	# author_affiliations = author_join[["author_id", "author_affiliation_clean"]].copy().drop_duplicates("author_id")
+	# co_author_affiliations = author_affiliations.copy().rename(columns={"author_id":"co_author_id", "author_affiliation_clean":"co_author_affiliation_clean"})
+
+	# co_authors = pd.merge(co_authors, author_affiliations, how="left", on="author_id")
+	# co_authors["author_affiliation_clean"] = co_authors["author_affiliation_clean"].fillna("")
+	# co_authors = pd.merge(co_authors, co_author_affiliations, how="left", on="co_author_id")
+	# co_authors["co_author_affiliation_clean"] = co_authors["co_author_affiliation_clean"].fillna("")
+
+	# co_authors["co_author_affilation_dist"] = co_authors.apply(
+	# 	lambda row: jf.levenshtein_distance(unicode(row["author_affiliation_clean"]), unicode(row["co_author_affiliation_clean"])), 
+	# 	axis=1)
+
+	# affiliation_distances = co_authors.groupby(["author_id"], sort=False)["co_author_affiliation_dist"]
+	# aff_min = affiliation_distances.min().rename("min_co_author_affiliation_dist")
+	# aff_max = affiliation_distances.max().rename("min_co_author_affiliation_dist")
+	# affiliation_stats = pd.concat([aff_min, aff_max], axis=1)
+
+	# author_year_stats['author_id'] = author_year_stats.index
+
 	co_author_features = paper_join[["paper_id", "author_id"]].copy()
-	co_author_features = pd.merge(co_author_features, co_authors[["paper_id", "num_authors"]], how="left", on="paper_id")
+	co_author_features = pd.merge(co_author_features, paper_author_groups[["paper_id", "author_count"]], how="left", on="paper_id")
+	
 
 	train_out = pd.merge(train_out, co_author_features, how="left", on=["author_id", "paper_id"])
 
@@ -133,6 +161,6 @@ train_out = affiliation_features(author_join, train_out)
 
 train_out = author_year_features(paper_join, train_out)
 
-train_out = co_author_features(paper_join, train_out)
+train_out = co_author_features(author_join, paper_join, train_out)
 
 train_out.pkl("./pkl/train_features.pkl")
