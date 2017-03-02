@@ -96,5 +96,18 @@ def main():
 	print "Saving paper_join to ./pkl/author_join.pkl"
 	paper_join.to_pickle("./pkl/paper_join.pkl")
 
+
+	# Valid.csv
+	valid_file = "./data/Valid.csv"
+	print "Reading Valid.csv from {0}".format(valid_file)
+	valid_csv = pd.read_csv(valid_file)
+
+
+	valid_data = pd.DataFrame(valid_csv.PaperIds.str.split(" ").tolist(), index=valid_csv.AuthorId).stack()
+	valid_data = valid_data.reset_index()[['AuthorId', 0]]
+	valid_data.columns = ["author_id", "paper_id"]
+	valid_data.to_pickle("./pkl/valid_base.pkl")
+	# valid_data["wrote_paper"] = 1
+
 if __name__ == "__main__": main()
 
