@@ -16,9 +16,9 @@ Name Distance Features
 1. Edit distance between the clean name in Author.csv and clean name in PaperAuthor.csv for a (paper_id, author_id) combo
 2. Edit distance between the first name in Author.csv and first name in PaperAuthor.csv for a (paper_id, author_id)_ combo
 3. Edit distance between the last name in Author.csv and last name in PaperAuthor.csv for a (paper_id, author_id) combo
-**4. Jaro distance between the clean name in Author.csv and clean name in PaperAuthor.csv for a (paper_id, author_id) combo
-**5. Jaro distance between the first name in Author.csv and first name in PaperAuthor.csv for a (paper_id, author_id) combo
-**6. Jaro distance between the last name in Author.csv and last name in PaperAuthor.csv for a (paper_id, author_id) combo
+4. Jaro distance between the clean name in Author.csv and clean name in PaperAuthor.csv for a (paper_id, author_id) combo
+5. Jaro distance between the first name in Author.csv and first name in PaperAuthor.csv for a (paper_id, author_id) combo
+6. Jaro distance between the last name in Author.csv and last name in PaperAuthor.csv for a (paper_id, author_id) combo
 
 Affiliation Distance Features
 1. Edit distance between the clean affiliation in Author.csv and clean name in PaperAuthor.csv for a (paper_id, author_id) combo
@@ -31,4 +31,7 @@ Year Features
 4. Difference between the author's median publish year and the paper's publish year for a (paper_id, author_id) combo
 
 Coauthor Features
-1.
+1. Num of authors for a paper
+**2. Minumum Distance between the affiliation of an Author's affiliation and their Co-Authors' Affiliations for a (paper_id, author_id) combo
+**3. Maximum Distance between the affilliation of an Author's affiliation and their Co-Authors' Affiliations for a (paper_id, author_id) combo
+**4. Number of common papers between an Author and their Co-Authors for a (paper_id, author_id) combo

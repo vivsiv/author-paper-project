@@ -133,4 +133,6 @@ train_out = affiliation_features(author_join, train_out)
 
 train_out = author_year_features(paper_join, train_out)
 
+train_out = co_author_features(paper_join, train_out)
+
 train_out.pkl("./pkl/train_features.pkl")
