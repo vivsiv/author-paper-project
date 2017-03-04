@@ -35,3 +35,8 @@ Coauthor Features
 **2. Minumum Distance between the affiliation of an Author's affiliation and their Co-Authors' Affiliations for a (paper_id, author_id) combo
 **3. Maximum Distance between the affilliation of an Author's affiliation and their Co-Authors' Affiliations for a (paper_id, author_id) combo
 **4. Number of common papers between an Author and their Co-Authors for a (paper_id, author_id) combo
+
+Author Paper Features
+1. Number of papers by each coauthor of a target paper
+2. Number of conferences of each coauthor of a target paper
+3. Number of journals of each coauthor of a target paper
