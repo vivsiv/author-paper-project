@@ -175,6 +175,34 @@ def author_paper_features(author_join, paper_join, train_out):
 	train_out = pd.merge(train_out, author_paper_features, how="left", on=["author_id", "paper_id"])
 
 	return train_out
+ 
+def paper_year_features(paper_join, train_out):
+	conference_year = paper_join[paper_join.paper_year != 0].groupby(['conference_id'], sort=False)['paper_year']
+	pcy_mean = conference_year.mean().rename("mean_conf_year")
+	pcy_std = conference_year.std().rename("std_conf_year")
+	pcy_median = conference_year.median().rename("median_conf_year")
+	journal_year = paper_join[paper_join.paper_year != 0].groupby(['journal_id'], sort=False)['paper_year']
+	pjy_mean = journal_year.mean().rename("mean_journal_year")
+	pjy_std = journal_year.std().rename("std_journal_year")
+	pjy_median = journal_year.median().rename("median_journal_year")
+	conference_year_stats = pd.concat([pcy_mean, pcy_std, pcy_median], axis=1)
+	journal_year_stats = pd.concat([pjy_mean, pjy_std, pjy_median], axis=1)
+	conference_year_stats['conference_id'] = conference_year_stats.index
+	journal_year_stats['journal_id'] = journal_year_stats.index
+
+
+	conference_year_features = paper_join[["author_id", "paper_id", "conference_id"]].copy()
+	journal_year_features = paper_join[["author_id", "paper_id", "journal_id"]].copy()
+
+	conference_year_features = pd.merge(conference_year_features, conference_year_stats, how="left", on="conference_id")
+	journal_year_features = pd.merge(journal_year_features, journal_year_stats, how="left", on="journal_id")
+
+	conference_year_features = conference_year_features.fillna(0)
+	journal_year_features = journal_year_features.fillna(0)
+    #train_out1 = pd.merge(train_out, conference_year_features, how="left", on=["author_id", "paper_id"])
+	train_out = pd.merge(pd.merge(train_out, conference_year_features, how="left", on=["author_id", "paper_id"]), journal_year_features, how="left", on=["author_id", "paper_id"])
+
+
 
 print "Reading author_join"
 author_join = pd.read_pickle("./pkl/author_join.pkl")
@@ -194,6 +222,9 @@ train_out = author_year_features(paper_join, train_out)
 train_out = co_author_features(author_join, paper_join, train_out)
 
 train_out = author_paper_features(author_join, paper_join, train_out)
+
+train_out = paper_year_features(paper_join, train_out)
+
 
 # train_out.pkl("./pkl/train_features.pkl")
 
@@ -220,9 +251,15 @@ out_columns=["author_id",
 		"median_year_diff",
 		"author_count",
 		"wrote_paper",
-        "paper_count",
-        "conf_count",
-        "journal_count"
+		"paper_count",
+		"conf_count",
+		"journal_count",
+		"pcy_mean",
+		"pcy_std",
+		"pcy_median",
+		"pjy_mean",
+		"pjy_std",
+		"pjy_median"
 	]
 
 train_out.sort_values(by="author_id").to_csv("./TrainOut.csv", index=False, 
