@@ -154,7 +154,7 @@ def co_author_features(author_join, paper_join, train_out):
 	return train_out
  
 def author_paper_features(author_join, paper_join, train_out):
-	print "Generating author_paper features"
+	print "Generating author paper features"
 	author_paper = paper_join.groupby(["author_id"], sort=False)
 	author_paper_groups = author_paper["paper_id"].agg({"papers":(lambda group: list(group))})
 	author_conf_groups = author_paper["conference_id"].agg({"conference":(lambda group: list(group))})
@@ -177,14 +177,15 @@ def author_paper_features(author_join, paper_join, train_out):
 	return train_out
  
 def paper_year_features(paper_join, train_out):
+	print "Generating paper year features"
 	conference_year = paper_join[paper_join.paper_year != 0].groupby(['conference_id'], sort=False)['paper_year']
-	pcy_mean = conference_year.mean().rename("mean_conf_year")
-	pcy_std = conference_year.std().rename("std_conf_year")
-	pcy_median = conference_year.median().rename("median_conf_year")
+	pcy_mean = conference_year.mean().rename("pcy_mean")
+	pcy_std = conference_year.std().rename("pcy_std")
+	pcy_median = conference_year.median().rename("pcy_median")
 	journal_year = paper_join[paper_join.paper_year != 0].groupby(['journal_id'], sort=False)['paper_year']
-	pjy_mean = journal_year.mean().rename("mean_journal_year")
-	pjy_std = journal_year.std().rename("std_journal_year")
-	pjy_median = journal_year.median().rename("median_journal_year")
+	pjy_mean = journal_year.mean().rename("pjy_mean")
+	pjy_std = journal_year.std().rename("pjy_std")
+	pjy_median = journal_year.median().rename("pjy_median")
 	conference_year_stats = pd.concat([pcy_mean, pcy_std, pcy_median], axis=1)
 	journal_year_stats = pd.concat([pjy_mean, pjy_std, pjy_median], axis=1)
 	conference_year_stats['conference_id'] = conference_year_stats.index
@@ -199,10 +200,8 @@ def paper_year_features(paper_join, train_out):
 
 	conference_year_features = conference_year_features.fillna(0)
 	journal_year_features = journal_year_features.fillna(0)
-    #train_out1 = pd.merge(train_out, conference_year_features, how="left", on=["author_id", "paper_id"])
 	train_out = pd.merge(pd.merge(train_out, conference_year_features, how="left", on=["author_id", "paper_id"]), journal_year_features, how="left", on=["author_id", "paper_id"])
 	return train_out
-
 
 
 print "Reading author_join"
