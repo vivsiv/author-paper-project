@@ -201,6 +201,7 @@ def paper_year_features(paper_join, train_out):
 	journal_year_features = journal_year_features.fillna(0)
     #train_out1 = pd.merge(train_out, conference_year_features, how="left", on=["author_id", "paper_id"])
 	train_out = pd.merge(pd.merge(train_out, conference_year_features, how="left", on=["author_id", "paper_id"]), journal_year_features, how="left", on=["author_id", "paper_id"])
+	return train_out
 
 
 
