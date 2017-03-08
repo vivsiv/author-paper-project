@@ -4,6 +4,12 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report,confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn import tree
+from sklearn import svm
+from sklearn.model_selection import cross_val_score
+
+#this file may need to be run individually after we each model. this way saves time. 
 
 # we need train the new testing data and save into valid_data.csv
 dataRead = pd.read_csv('valid_data.csv')  #the file name could be changed
