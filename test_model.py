@@ -67,8 +67,8 @@ y_prediction = clf.predict(X_test)
 
 #confusion matrix to evaluate the result.
 print('result confusion matrix: ')
-print(confusion_matrix(y_test,y_prediction))
-print(classification_report(y_test,y_prediction))
+print(confusion_matrix(y_true,y_prediction))
+print(classification_report(y_true,y_prediction))
 
 
 
