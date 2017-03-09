@@ -1,5 +1,5 @@
-import sys
-sys.path.append("/usr/local/lib/python2.7/site-packages")
+# import sys
+# sys.path.append("/usr/local/lib/python2.7/site-packages")
 import numpy as np
 import pandas as pd
 import sklearn as sk
@@ -11,7 +11,7 @@ from sklearn.model_selection import cross_val_score
 # import matplotlib.pyplot as plt
 
 print "Reading in Training Data"
-train_data = pd.read_csv("./TrainOut.csv")
+train_data = pd.read_csv("./data/TrainOutNew.csv")
 
 #Select K Best Factors
 # predictors = ["CmpPct", "IntPct", "Y/A", "AY/A", "ANY/A", "TD/Int", "Rate", "Y/G"]
@@ -42,8 +42,12 @@ features = ["has_author_name",
 		"max_year_diff",
 		"mean_year_diff",
 		"median_year_diff",
-		"author_count"]
-
+		"author_count",
+		"matched_substring_name_ratio",
+		"matched_substring_affiliation_ratio",
+		"matched_substring_first_name_ratio",
+		"matched_substring_last_name_ratio",
+		"num_authors_same_name"]
 
 # print "Using RandomForest with 20 trees"
 # random_forest_model = en.RandomForestClassifier(n_estimators=30)
