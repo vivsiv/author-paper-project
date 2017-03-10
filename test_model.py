@@ -83,7 +83,7 @@ dataRead.to_csv("features_with_prediction.csv", index = False)
 
 #select the data we want
 newDataRead = pd.read_csv('features_with_prediction.csv')
-result_we_want = newDataRead[["author_id","paper_id","wrote_paper"]]
+result_we_want = newDataRead[["author_id","paper_id","y_prediction"]]
 
 result_we_want.to_csv("prediction_result.csv", index = False)
 
