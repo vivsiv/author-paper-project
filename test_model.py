@@ -47,6 +47,7 @@ X_test = dataRead[["has_author_name",
 
 
 y_prediction = clf.predict(X_test)
+y_prediction = {'y_prediction': y_prediction}
 
 #dataRead.insert(len(dataRead),'y_prediction',y_prediction)
 
