@@ -76,7 +76,8 @@ out_columns=["author_id",
 		
 	]
 frames = [out_columns,y_prediction]
-dataRead = pd.concat(frames, axis = 1)
+
+dataRead = pd.concat([dataRead,y_prediction], axis = 1)
 dataRead.to_csv("features_with_prediction.csv", index = False)
 
 #select the data we want
