@@ -43,7 +43,7 @@ Author Paper Features
 
 
 
-#the order of running modeling and validation
+## the order of running modeling and validation
 1 valid_train_features.py
 2 any model  .py
 3 test_model.py   -> this file will print out accuracy
