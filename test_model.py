@@ -95,7 +95,6 @@ valid_Solution_we_need.columns = ["author_id", "paper_id"]
 valid_Solution_we_need['wrote_paper_true_result']=1
 
 #predic and real solution merge
-#merge_predict_and_real =result_we_want.merge(valid_Solution_we_need, how = 'left', on = ["author_id","paper_id
 frames = [result_we_want,valid_Solution_we_need]
 merge_predict_and_real =result_we_want.merge(valid_Solution_we_need, how = "right",on =["author_id","paper_id"] )
 merge_predict_and_real.to_csv("merge_predict_and_real.csv", index = False)
