@@ -46,38 +46,39 @@ X_test = dataRead[["has_author_name",
 		]]
 
 
-y_prediction = clf.predict(X_test)
-y_prediction = {'y_prediction': y_prediction}
+#y_prediction = clf.predict(X_test)
+# y_prediction = {'y_prediction': y_prediction}
 
-#dataRead.insert(len(dataRead),'y_prediction',y_prediction)
 
-out_columns=["author_id", 
-		"paper_id", 
-		"has_author_name",
-		"has_author_affiliation",
-		"has_paper_title",
-		"has_paper_year",
-		"has_conference_id",
-		"has_journal_id",
-		"has_paper_keyword",
-		"name_clean_lev_dist",
-		"first_name_lev_dist",
-		"last_name_lev_dist",
-		"name_clean_jaro_dist",
-		"first_name_jaro_dist",
-		"last_name_jaro_dist",
-		"affiliation_clean_lev_dist",
-		"affiliation_clean_jaro_dist",
-		"min_year_diff",
-		"max_year_diff",
-		"mean_year_diff",
-		"median_year_diff",
-		"author_count"
+# #dataRead.insert(len(dataRead),'y_prediction',y_prediction)
+
+# out_columns=["author_id", 
+# 		"paper_id", 
+# 		"has_author_name",
+# 		"has_author_affiliation",
+# 		"has_paper_title",
+# 		"has_paper_year",
+# 		"has_conference_id",
+# 		"has_journal_id",
+# 		"has_paper_keyword",
+# 		"name_clean_lev_dist",
+# 		"first_name_lev_dist",
+# 		"last_name_lev_dist",
+# 		"name_clean_jaro_dist",
+# 		"first_name_jaro_dist",
+# 		"last_name_jaro_dist",
+# 		"affiliation_clean_lev_dist",
+# 		"affiliation_clean_jaro_dist",
+# 		"min_year_diff",
+# 		"max_year_diff",
+# 		"mean_year_diff",
+# 		"median_year_diff",
+# 		"author_count"
 		
-	]
-frames = [out_columns,y_prediction]
+# 	]
+# frames = [out_columns,y_prediction]
 
-dataRead = pd.concat([dataRead,y_prediction], axis = 1)
+dataRead['y_prediction'] = clf.predict(X_test)
 dataRead.to_csv("features_with_prediction.csv", index = False)
 
 #select the data we want
@@ -101,7 +102,7 @@ merge_predict_and_real.to_csv("merge_predict_and_real.csv", index = False)
 
 #calculate accuracy
 df_accu = pd.DataFrame(merge_predict_and_real,columns = ['y_prediction','wrote_paper_true_result'])
-df_accu['correct_predict'] = np.where((df['y_prediction']==df['wrote_paper_true_result']),1,0)
+df_accu['correct_predict'] = np.where((df_accu['y_prediction']==df_accu['wrote_paper_true_result']),1,0)
 accuracy_result = df_accu['correct_predict'].mean()
 print('the accuracy is:')
 print(accuracy_result)
