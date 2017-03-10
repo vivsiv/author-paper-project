@@ -40,3 +40,12 @@ Author Paper Features
 1. Number of papers by each author
 2. Number of conferences of each author
 3. Number of journals of each author
+
+
+
+#the order of running modeling and validation
+1 valid_train_features.py
+2 any model  .py
+3 test_model.py   -> this file will print out accuracy
+
+
