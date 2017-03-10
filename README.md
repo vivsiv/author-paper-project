@@ -37,6 +37,6 @@ Coauthor Features
 **4. Number of common papers between an Author and their Co-Authors for a (paper_id, author_id) combo
 
 Author Paper Features
-1. Number of papers by each coauthor of a target paper
-2. Number of conferences of each coauthor of a target paper
-3. Number of journals of each coauthor of a target paper
+1. Number of papers by each author
+2. Number of conferences of each author
+3. Number of journals of each author
