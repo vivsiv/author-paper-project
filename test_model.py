@@ -48,7 +48,7 @@ X_test = dataRead[["has_author_name",
 
 y_prediction = clf.predict(X_test)
 
-dataRead.insert(len(dataRead),'y_prediction',write)
+dataRead.insert(len(dataRead),'y_prediction',y_prediction)
 dataRead.to_csv("features_with_prediction.csv", index = False)
 
 #select the data we want
