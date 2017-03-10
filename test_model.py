@@ -90,9 +90,10 @@ result_we_want.to_csv("prediction_result.csv", index = False)
 # validSolution
 valid_Solution_Read = pd.read_csv('ValidSolution.csv')
 valid_Solution_we_need = valid_Solution_Read[[
-						   "author_id",
-						   "paper_id"
+						   "AuhorId",
+						   "PaperIds"
                          ]]
+valid_Solution_we_need.rename(columns = {"AuhorId":"author_id","PaperIds":"paper_id")
 
 valid_Solution_we_need['wrote_paper_true_result']=1
 
