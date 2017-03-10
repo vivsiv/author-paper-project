@@ -194,11 +194,11 @@ out_columns=["author_id",
 		"max_year_diff",
 		"mean_year_diff",
 		"median_year_diff",
-		"author_count",
-		"wrote_paper"
+		"author_count"
+		
 	]
 
-train_out.sort_values(by="author_id").to_csv("./TrainOut.csv", index=False, 
+train_out.sort_values(by="author_id").to_csv("./ValidTrainOut.csv", index=False, 
 	columns=out_columns)
 
 
