@@ -93,7 +93,7 @@ valid_Solution_we_need = valid_Solution_Read[[
 						   "AuhorId",
 						   "PaperIds"
                          ]]
-valid_Solution_we_need.rename(columns = {"AuhorId":"author_id","PaperIds":"paper_id")
+valid_Solution_we_need.columns = ["author_id","paper_id"]
 
 valid_Solution_we_need['wrote_paper_true_result']=1
 
