@@ -5,7 +5,7 @@
 # 3 this file
 
 #out put are two csv files, with or without features
-
+import numpy as np
 import pandas as pd
 from sklearn.neural_network import MLPClassifier
 # confusion matrix to evaluate result
@@ -48,15 +48,35 @@ X_test = dataRead[["has_author_name",
 
 y_prediction = clf.predict(X_test)
 
-dataRead.insert(len(dataRead),'wrote_paper',write)
+dataRead.insert(len(dataRead),'y_prediction',write)
 dataRead.to_csv("features_with_prediction.csv", index = False)
 
-#save to the data we want
+#select the data we want
 newDataRead = pd.read_csv('features_with_prediction.csv')
-
 result_we_want = newDataRead[["author_id","paper_id","wrote_paper"]]
 
 result_we_want.to_csv("prediction_result.csv", index = False)
+
+# validSolution
+valid_Solution_Read = pd.read_csv('ValidSolution.csv')
+valid_Solution_we_need = valid_Solution_Read[[
+						   "author_id",
+						   "paper_id"
+                         ]]
+
+valid_Solution_we_need['wrote_paper_true_result']=1
+
+#predic and real solution merge
+merge_predict_and_real =result_we_want.merge(valid_Solution_we_need, how = 'left', on = ["author_id","paper_id"])
+merge_predict_and_real.to_csv("merge_predict_and_real.csv", index = False)
+
+#calculate accuracy
+df_accu = pd.DataFrame(merge_predict_and_real,columns = ['y_prediction','wrote_paper_true_result'])
+df_accu['correct_predict'] = np.where((df['y_prediction']==df['wrote_paper_true_result']),1,0)
+accuracy_result = df_accu['correct_predict'].mean()
+print('the accuracy is:')
+print(accuracy_result)
+
 
 
 
