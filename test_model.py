@@ -90,7 +90,7 @@ result_we_want.to_csv("prediction_result.csv", index = False)
 # validSolution
 valid_csv = pd.read_csv('ValidSolution.csv')
 valid_Solution_we_need = pd.DataFrame(valid_csv.PaperIds.str.split(" ").tolist(), index=valid_csv.AuthorId).stack()
-valid_Solution_we_need = valid_data.reset_index()[['AuthorId', 0]]
+valid_Solution_we_need = valid_Solution_we_need.reset_index()[['AuthorId', 0]]
 valid_Solution_we_need.columns = ["author_id", "paper_id"]
 valid_Solution_we_need['wrote_paper_true_result']=1
 
