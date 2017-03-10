@@ -70,7 +70,7 @@ def paper_journal_num_features(train_out, paper_join):
 
 	jour_author_groups = paper_join[["author_id","paper_id"]]
 	jour_author_groups = jour_author_groups.merge(author_jour_groups, how="left", on=["author_id"])
-	temp = jour_author_groups.groupby("paper_id", sort = False)["jour_count"].sum().rename("coauthor_jour_count")
+	temp = jour_author_groups.groupby("paper_id", sort = False)["journal_count"].sum().rename("coauthor_jour_count")
 	temp = temp.reset_index()
 	jour_number_features = paper_join[["author_id","paper_id"]].merge(temp, how="left", on=["paper_id"])
 	train_out = pd.merge(train_out, jour_number_features, how="left", on=["author_id", "paper_id"])
@@ -87,6 +87,10 @@ train_out = pd.read_pickle("./pkl/train_base.pkl")
 
 #train_out = paper_conference_journal_features(paper_join, train_out)
 train_out = keyword_features(train_out, paper_join)
+train_out = paper_number_features(train_out, paper_join)
+train_out = paper_conf_num_features(train_out, paper_join)
+train_out = paper_journal_num_features(train_out, paper_join)
+
 
 
 # train_out.pkl("./pkl/train_features.pkl")
