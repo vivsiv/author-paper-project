@@ -1,3 +1,6 @@
+#this is wrong. 
+
+
 import pandas as pd
 from sklearn.neural_network import MLPClassifier
 # confusion matrix to evaluate result
@@ -13,6 +16,9 @@ from sklearn.model_selection import cross_val_score
 
 # we need train the new testing data and save into valid_data.csv
 dataRead = pd.read_csv('valid_data.csv')  #the file name could be changed
+
+dataTrue = pd.read_csv('')
+dataPredict = pd.read_csv('')  # get from valid solution
 
 
 #add new features behind:
