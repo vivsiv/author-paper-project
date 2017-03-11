@@ -42,6 +42,9 @@ def main():
 
 	author_df["author_name_clean"] = author_df["author_name"].replace(string_replacements, regex=True).str.lower()
 	author_df["author_affiliation_clean"] = author_df["author_affiliation"].replace(string_replacements, regex=True).str.lower()
+	
+	print "Saving author_info to ./pkl/author_info.pkl"
+	author_df.to_pickle("./pkl/author_info.pkl")
 
 
 	# Paper.csv
@@ -63,6 +66,9 @@ def main():
 		"JournalId":"journal_id", 
 		"Keyword":"paper_keyword"
 	})
+
+	print "Saving paper_info to ./pkl/paper_info.pkl"
+	paper_df.to_pickle("./pkl/paper_info.pkl")
 
 
 	# Paper_Author.csv

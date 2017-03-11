@@ -26,6 +26,105 @@ def has_features(author_join, paper_join, train_out):
 
 	return train_out
 
+def author_features(author_info, author_join, paper_join, train_out):
+	print "Generating author features"
+	author_join_groupby = author_join.groupby(["author_id"])
+	paper_join_groupby = paper_join.groupby(["author_id"])
+
+	author_features = author_join[["author_id", "paper_id"]].copy()
+
+	# Number of papers by the author
+	author_paper_count = author_join_groupby["paper_id"].nunique()
+	author_paper_count = author_paper_count.reset_index()
+	author_paper_count = author_paper_count.rename(columns={"paper_id":"paper_count"})
+
+	author_features = pd.merge(author_features, author_paper_count, how="left", on="author_id")
+	author_features = author_features.fillna(0)
+	author_features["paper_count"] = author_features["paper_count"].astype(int)
+
+	# Number of papers by the author in journals
+	valid_journal_ids = paper_join[paper_join.journal_id != 0]
+	num_journal_papers = valid_journal_ids.groupby("author_id")["paper_id"].nunique()
+	num_journal_papers = num_journal_papers.reset_index()
+	num_journal_papers = num_journal_papers.rename(columns={"paper_id":"journal_paper_count"})
+
+	author_features = pd.merge(author_features, num_journal_papers, how="left", on="author_id")
+	author_features = author_features.fillna(0)
+	author_features["journal_paper_count"] = author_features["journal_paper_count"].astype(int)
+
+	# Journal Fraction
+	journal_fraction = pd.merge(author_paper_count, num_journal_papers, how="left", on="author_id")
+	journal_fraction["journal_paper_count"] = journal_fraction["journal_paper_count"].fillna(0)
+	journal_fraction["paper_count"] = journal_fraction["paper_count"].astype(float)
+	journal_fraction["journal_paper_fraction"] = journal_fraction["journal_paper_count"] / journal_fraction["paper_count"]
+
+	author_features = pd.merge(author_features, journal_fraction[["author_id", "journal_paper_fraction"]], how="left", on="author_id")
+
+	# Number of papers by the author in conferences
+	valid_conference_ids = paper_join[paper_join.conference_id != 0]
+	num_conference_papers = valid_conference_ids.groupby("author_id")["paper_id"].nunique()
+	num_conference_papers = num_conference_papers.reset_index()
+	num_conference_papers = num_conference_papers.rename(columns={"paper_id":"conference_paper_count"})
+
+	author_features = pd.merge(author_features, num_conference_papers, how="left", on="author_id")
+	author_features = author_features.fillna(0)
+	author_features["conference_paper_count"] = author_features["conference_paper_count"].astype(int)
+
+	# Conference Fraction
+	conference_fraction = pd.merge(author_paper_count, num_conference_papers, how="left", on="author_id")
+	conference_fraction["conference_paper_count"] = conference_fraction["conference_paper_count"].fillna(0)
+	conference_fraction["paper_count"] = conference_fraction["paper_count"].astype(float)
+	conference_fraction["conference_paper_fraction"] = conference_fraction["conference_paper_count"] / conference_fraction["paper_count"]
+
+	author_features = pd.merge(author_features, conference_fraction[["author_id", "conference_paper_fraction"]], how="left", on="author_id")
+
+	#Total Fraction
+	author_features["total_paper_fraction"] = author_features["journal_paper_fraction"] + author_features["conference_paper_fraction"]
+
+	# Number of journals the author had papers in
+	num_journal_ids = paper_join_groupby["journal_id"].nunique()
+	num_journal_ids = num_journal_ids.reset_index()
+	num_journal_ids = num_journal_ids.rename(columns={"journal_id":"journal_count"})
+
+	author_features = pd.merge(author_features, num_journal_ids, how="left", on="author_id")
+	author_features = author_features.fillna(0)
+	author_features["journal_count"] = author_features["journal_count"].astype(int)
+
+	# Number of conferences the author had papers in
+	num_conference_ids = paper_join_groupby["conference_id"].nunique()
+	num_conference_ids = num_conference_ids.reset_index()
+	num_conference_ids = num_conference_ids.rename(columns={"conference_id":"conference_count"})
+
+	author_features = pd.merge(author_features, num_conference_ids, how="left", on="author_id")
+	author_features = author_features.fillna(0)
+	author_features["conference_count"] = author_features["conference_count"].astype(int)
+	
+	# Number of years the author was published in
+	num_paper_years = paper_join_groupby["paper_year"].nunique()
+	num_paper_years = num_paper_years.reset_index()
+	num_paper_years = num_paper_years.rename(columns={"paper_year":"year_count"})
+
+	author_features = pd.merge(author_features, num_paper_years, how="left", on="author_id")
+	author_features = author_features.fillna(0)
+	author_features["year_count"] = author_features["year_count"].astype(int)
+
+	# Number of authors with same affiliation as this author
+	valid_affiliation = author_info[author_info["author_affiliation_clean"] != ""].copy()
+	valid_affiliation["same_affiliation_count"] = valid_affiliation.groupby("author_affiliation_clean")["author_affiliation_clean"].transform("count")
+	num_same_affiliation = valid_affiliation[["author_id", "same_affiliation_count"]].copy()
+
+	author_features = pd.merge(author_features, num_same_affiliation, how="left", on="author_id")
+	author_features = author_features.fillna(0)
+	author_features["same_affiliation_count"] = author_features["same_affiliation_count"].astype(int)
+
+	print "Saving author_info to ./pkl/author_info.pkl"
+	author_info.to_pickle("./pkl/author_info.pkl")
+
+	train_out = pd.merge(train_out, author_features, how="left", on=["author_id", "paper_id"])
+
+	return train_out
+
+
 def name_features(author_join, train_out):
 	# Name Distance Features
 	print "Generating name distance features"
@@ -149,6 +248,8 @@ def co_author_features(author_join, paper_join, train_out):
 
 	return train_out
 
+print "Reading author_info"
+author_info = pd.read_pickle("./pkl/author_info.pkl")
 
 print "Reading author_join"
 author_join = pd.read_pickle("./pkl/author_join.pkl")
@@ -157,42 +258,60 @@ paper_join = pd.read_pickle("./pkl/paper_join.pkl")
 print "Reading train_base"
 train_out = pd.read_pickle("./pkl/train_base.pkl")
 
-train_out = has_features(author_join, paper_join, train_out)
+# train_out = has_features(author_join, paper_join, train_out)
 
-train_out = name_features(author_join, train_out)
+train_out = author_features(author_info, author_join, paper_join, train_out)
 
-train_out = affiliation_features(author_join, train_out)
+# train_out = name_features(author_join, train_out)
 
-train_out = author_year_features(paper_join, train_out)
+# train_out = affiliation_features(author_join, train_out)
 
-train_out = co_author_features(author_join, paper_join, train_out)
+# train_out = author_year_features(paper_join, train_out)
+
+# train_out = co_author_features(author_join, paper_join, train_out)
 
 # train_out.pkl("./pkl/train_features.pkl")
 
 out_columns=["author_id", 
 		"paper_id", 
-		"has_author_name",
-		"has_author_affiliation",
-		"has_paper_title",
-		"has_paper_year",
-		"has_conference_id",
-		"has_journal_id",
-		"has_paper_keyword",
-		"name_clean_lev_dist",
-		"first_name_lev_dist",
-		"last_name_lev_dist",
-		"name_clean_jaro_dist",
-		"first_name_jaro_dist",
-		"last_name_jaro_dist",
-		"affiliation_clean_lev_dist",
-		"affiliation_clean_jaro_dist",
-		"min_year_diff",
-		"max_year_diff",
-		"mean_year_diff",
-		"median_year_diff",
-		"author_count",
+		"paper_count",
+		"journal_paper_count",
+		"journal_paper_fraction",
+		"conference_paper_count",
+		"conference_paper_fraction",
+		"total_paper_fraction",
+		"journal_count",
+		"conference_count",
+		"year_count",
+		"same_affiliation_count"
 		"wrote_paper"
 	]
+
+
+# out_columns=["author_id", 
+# 		"paper_id", 
+# 		"has_author_name",
+# 		"has_author_affiliation",
+# 		"has_paper_title",
+# 		"has_paper_year",
+# 		"has_conference_id",
+# 		"has_journal_id",
+# 		"has_paper_keyword",
+# 		"name_clean_lev_dist",
+# 		"first_name_lev_dist",
+# 		"last_name_lev_dist",
+# 		"name_clean_jaro_dist",
+# 		"first_name_jaro_dist",
+# 		"last_name_jaro_dist",
+# 		"affiliation_clean_lev_dist",
+# 		"affiliation_clean_jaro_dist",
+# 		"min_year_diff",
+# 		"max_year_diff",
+# 		"mean_year_diff",
+# 		"median_year_diff",
+# 		"author_count",
+# 		"wrote_paper"
+# 	]
 
 train_out.sort_values(by="author_id").to_csv("./TrainOut.csv", index=False, 
 	columns=out_columns)
