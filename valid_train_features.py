@@ -159,17 +159,17 @@ author_join = pd.read_pickle("./pkl/author_join.pkl")
 print "Reading paper_join"
 paper_join = pd.read_pickle("./pkl/paper_join.pkl")
 print "Reading valid_base"
-valid_train_out = pd.read_pickle("./pkl/valid_base.pkl")
+train_out = pd.read_pickle("./pkl/valid_base.pkl")
 
-valid_train_out = has_features(author_join, paper_join, valid_train_out)
+train_out = has_features(author_join, paper_join, train_out)
 
-valid_train_out = name_features(author_join, valid_train_out)
+train_out = name_features(author_join, train_out)
 
-valid_train_out = affiliation_features(author_join, valid_train_out)
+train_out = affiliation_features(author_join, train_out)
 
-valid_train_out = author_year_features(paper_join, valid_train_out)
+train_out = author_year_features(paper_join, train_out)
 
-valid_train_out = co_author_features(author_join, paper_join, valid_train_out)
+train_out = co_author_features(author_join, paper_join, train_out)
 
 # train_out.pkl("./pkl/train_features.pkl")
 
@@ -198,7 +198,7 @@ out_columns=["author_id",
 		
 	]
 
-valid_train_out.sort_values(by="author_id").to_csv("./ValidTrainOut.csv", index=False, 
+train_out.sort_values(by="author_id").to_csv("./ValidTrainOut.csv", index=False, 
 	columns=out_columns)
 
 

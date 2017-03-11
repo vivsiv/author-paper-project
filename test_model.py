@@ -16,6 +16,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn import tree
 from sklearn import svm
 from sklearn.model_selection import cross_val_score
+import pickle
 
 #this file may need to be run individually after we each model. this way saves time. 
 
@@ -46,37 +47,14 @@ X_test = dataRead[["has_author_name",
 		]]
 
 
-#y_prediction = clf.predict(X_test)
-# y_prediction = {'y_prediction': y_prediction}
+#need to delete every time for old classifier
+#with open('classifer.pkl', 'rb') as f:
+#    clf = pickle.load(f)
+#need above
 
 
-# #dataRead.insert(len(dataRead),'y_prediction',y_prediction)
 
-# out_columns=["author_id", 
-# 		"paper_id", 
-# 		"has_author_name",
-# 		"has_author_affiliation",
-# 		"has_paper_title",
-# 		"has_paper_year",
-# 		"has_conference_id",
-# 		"has_journal_id",
-# 		"has_paper_keyword",
-# 		"name_clean_lev_dist",
-# 		"first_name_lev_dist",
-# 		"last_name_lev_dist",
-# 		"name_clean_jaro_dist",
-# 		"first_name_jaro_dist",
-# 		"last_name_jaro_dist",
-# 		"affiliation_clean_lev_dist",
-# 		"affiliation_clean_jaro_dist",
-# 		"min_year_diff",
-# 		"max_year_diff",
-# 		"mean_year_diff",
-# 		"median_year_diff",
-# 		"author_count"
-		
-# 	]
-# frames = [out_columns,y_prediction]
+
 
 dataRead['y_prediction'] = clf.predict(X_test)
 dataRead.to_csv("features_with_prediction.csv", index = False)
@@ -92,11 +70,15 @@ valid_csv = pd.read_csv('ValidSolution.csv')
 valid_Solution_we_need = pd.DataFrame(valid_csv.PaperIds.str.split(" ").tolist(), index=valid_csv.AuthorId).stack()
 valid_Solution_we_need = valid_Solution_we_need.reset_index()[['AuthorId', 0]]
 valid_Solution_we_need.columns = ["author_id", "paper_id"]
+valid_Solution_we_need["paper_id"] = valid_Solution_we_need["paper_id"].fillna(0).astype(int)
 valid_Solution_we_need['wrote_paper_true_result']=1
+                      
+                      
+
 
 #predic and real solution merge
 frames = [result_we_want,valid_Solution_we_need]
-merge_predict_and_real =result_we_want.merge(valid_Solution_we_need, how = "right",on =["author_id","paper_id"] )
+merge_predict_and_real =result_we_want.merge(valid_Solution_we_need, how = "inner",on =["author_id","paper_id"] )
 merge_predict_and_real.to_csv("merge_predict_and_real.csv", index = False)
 
 #calculate accuracy

@@ -15,6 +15,7 @@ from sklearn.metrics import classification_report,confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn import tree
+import pickle
 
 pd.set_option('display.mpl_style', 'default')
 #figuresize(15,5)
@@ -128,5 +129,8 @@ print(classification_report(y_test,y_prediction))
 scores = cross_val_score(clf,selectData[features], selectData["wrote_paper"], cv = 5)
 print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
+
+#with open('classifer.pkl', 'wb') as f:
+#    pickle.dump(clf, f)
 
 
