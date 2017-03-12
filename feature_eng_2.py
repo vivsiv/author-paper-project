@@ -6,25 +6,13 @@ import pandas as pd
 import pickle
 import jellyfish as jf
 
-#def paper_conference_journal_features(train_out, paper_join):
-#    print "Generating paper conference journal features"
-#    author_paper = paper_join.groupby(["author_id"], sort=False)
-#    author_conference_groups = author_paper["conference_id"].agg({"conference_cnt":(lambda x: x.nunique)})
-#    author_conference_groups = author_conference_groups.reset_index()
-#    
-#    author_journal_groups = author_paper["journal_id"].agg({"journal_cnt":(lambda x: x.nunique)})
-#    author_journal_groups = author_journal_groups.reset_index()
-#    paper_conference_journal_features = pd.merge(author_conference_groups, author_journal_groups, how="left", on=["author_id"])
-#    train_out = pd.merge(train_out, paper_conference_journal_features, how="left", on=["author_id"])
-#    return train_out
-    
+
 def keyword_features(train_out,paper_join):
     print "Generating keyword features"
     author_paper = paper_join[["author_id","paper_id","paper_keyword"]]
     author_paper = author_paper.reset_index()
     author_paper["key_cnt"] = author_paper["paper_keyword"].apply(lambda x: len(x.split()))
     author_paper = author_paper.fillna(0)
-#    author_paper["distance"] = author_paper.groupby("author_id")["paper_keyword"].apply(lambda x: max(x.split()))
     key_features = author_paper[["author_id","paper_id","key_cnt"]]
     
     train_out = pd.merge(train_out, key_features, how="left", on=["author_id", "paper_id"])
@@ -57,7 +45,14 @@ def paper_conf_num_features(train_out, paper_join):
 	conf_author_groups = conf_author_groups.merge(author_conf_groups, how="left", on=["author_id"])
 	temp = conf_author_groups.groupby("paper_id", sort = False)["conf_count"].sum().rename("coauthor_conf_count")
 	temp = temp.reset_index()
+ 
+#	temp2 = conf_author_groups.groupby("paper_id", sort = False)["conference"].agg({"coauthor_conf_num":(lambda group: list(group))})
+#	temp2 = temp2.reset_index()
+#	temp2["coauthor_conf_num"] = temp2["coauthor_conf_num"].apply(np.hstack)
+#	temp2["coauthor_conf_num"] = temp2["coauthor_conf_num"].apply(np.unique)
+#	temp2["coauthor_conf_num"] = temp2["coauthor_conf_num"].apply(np.count_nonzero)
 	conf_number_features = paper_join[["author_id","paper_id"]].merge(temp, how="left", on=["paper_id"])
+#	conf_number_features = conf_number_features.merge(temp2, how="left", on=["paper_id"])
 	train_out = pd.merge(train_out, conf_number_features, how="left", on=["author_id", "paper_id"])
 	return train_out
      
@@ -67,14 +62,39 @@ def paper_journal_num_features(train_out, paper_join):
 	author_jour_groups = author_paper["journal_id"].agg({"journal":(lambda group: list(group))})
 	author_jour_groups["journal_count"] = author_jour_groups.apply(lambda row: np.count_nonzero(row["journal"]), axis=1)
 	author_jour_groups = author_jour_groups.reset_index()
+    #total_author_jour_count = (author_jour_groups["journal_count"]).sum()
 
 	jour_author_groups = paper_join[["author_id","paper_id"]]
 	jour_author_groups = jour_author_groups.merge(author_jour_groups, how="left", on=["author_id"])
 	temp = jour_author_groups.groupby("paper_id", sort = False)["journal_count"].sum().rename("coauthor_jour_count")
 	temp = temp.reset_index()
+ 
+#	temp2 = jour_author_groups.groupby("paper_id", sort = False)["journal"].agg({"coauthor_jour_num":(lambda group: list(group))})
+#	temp2 = temp2.reset_index()
+#	temp2["coauthor_jour_num"] = temp2["coauthor_jour_num"].apply(np.hstack)
+#	temp2["coauthor_jour_num"] = temp2["coauthor_jour_num"].apply(np.unique)
+#	temp2["coauthor_jour_num"] = temp2["coauthor_jour_num"].apply(np.count_nonzero)
+    
 	jour_number_features = paper_join[["author_id","paper_id"]].merge(temp, how="left", on=["paper_id"])
+#	jour_number_features = jour_number_features.merge(temp2, how="left", on=["paper_id"])
 	train_out = pd.merge(train_out, jour_number_features, how="left", on=["author_id", "paper_id"])
-	return train_out     
+	return train_out  
+ 
+def paper_all_author_year_features(train_out, paper_join):
+    print "Generating paper all author year features"
+    paper_year = paper_join.groupby(["paper_year"], sort=False)
+    paper_year_groups = paper_year["paper_id"].agg({"papers":(lambda group: list(group))})
+    paper_year_groups["papers"] = paper_year_groups.apply(lambda row: len(np.unique(row["papers"])), axis=1)
+    paper_year_groups = paper_year_groups.reset_index()
+    
+    paper_number_features = paper_join[["author_id","paper_id","paper_year"]]
+    paper_number_features = paper_number_features.merge(paper_year_groups,how = "left", on = "paper_year")
+    train_out = pd.merge(train_out, paper_number_features, how="left", on=["author_id","paper_id"])
+    train_out = train_out.rename(columns={'papers': 'paper_same_year'})
+    return train_out  
+    
+
+   
 
         
 
@@ -90,17 +110,18 @@ train_out = keyword_features(train_out, paper_join)
 train_out = paper_number_features(train_out, paper_join)
 train_out = paper_conf_num_features(train_out, paper_join)
 train_out = paper_journal_num_features(train_out, paper_join)
+train_out = paper_all_author_year_features(train_out, paper_join)
 
-
-
-# train_out.pkl("./pkl/train_features.pkl")
 
 out_columns=["author_id", 
 		"paper_id",
 		"key_cnt",
 		"coauthor_paper_count",
 		"coauthor_conf_count",
-		"coauthor_jour_count"
+		"coauthor_jour_count",
+#  "coauthor_conf_num",
+#  "coauthor_jour_num",
+  "paper_same_year"
 	]
 
 train_out.sort_values(by="author_id").to_csv("./TrainOut_2.csv", index=False, 
