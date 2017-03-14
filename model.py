@@ -9,12 +9,13 @@ import sklearn.tree as tree
 import sklearn.linear_model as linear
 import sklearn.naive_bayes as nb
 import sklearn.neural_network as nn
+import sklearn.feature_selection as fs
 from sklearn.model_selection import cross_val_score
 
 
 def feature_selection(train_data,all_features,n_features=5):
-	print "Using {0} BEST Features".format(n_features)
-	selector = sk.feature_selection.SelectKBest(sk.feature_selection.f_classif,n_features)
+	print "Selecting {0} BEST features from {1} total...".format(n_features, len(all_features))
+	selector = fs.SelectKBest(fs.f_classif,n_features)
 	selector_out = selector.fit(train_data[all_features],train_data["wrote_paper"])
 	# print selector_out.get_support()
 	selections = [feature for feature, selected in zip(all_features, selector_out.get_support()) if selected]
@@ -130,10 +131,7 @@ def grid_search(train_data,features,predict,cv_folds=5):
 	print "Best Model {0}".format(best_model)
 	return {"model":best_model,"score":best_score}
 
-def get_best_model(train_data,features,select_features=False):
-	if select_features:
-		features = feature_selection(train_data, features, len(features) / 2)
-
+def get_best_model(train_data,features):
 	best_score = 0
 	best_model = None
 	best_model_name = ""
@@ -144,41 +142,41 @@ def get_best_model(train_data,features,select_features=False):
 		best_model = results["model"]
 		best_score = results["score"]
 
-	results = decision_tree_classifier(train_data,features)
-	if results["score"] > best_score:
-		best_model_name = "DecisionTree"
-		best_model = results["model"]
-		best_score = results["score"]
+	# results = decision_tree_classifier(train_data,features)
+	# if results["score"] > best_score:
+	# 	best_model_name = "DecisionTree"
+	# 	best_model = results["model"]
+	# 	best_score = results["score"]
 
-	results = adaboost_classifier(train_data,features)
-	if results["score"] > best_score:
-		best_model_name = "Adaboost"
-		best_model = results["model"]
-		best_score = results["score"]
+	# results = adaboost_classifier(train_data,features)
+	# if results["score"] > best_score:
+	# 	best_model_name = "Adaboost"
+	# 	best_model = results["model"]
+	# 	best_score = results["score"]
 
-		results = gradient_boosting_classifier(train_data,features)
-	if results["score"] > best_score:
-		best_model_name = "GradientBoosting"
-		best_model = results["model"]
-		best_score = results["score"]
+	# 	results = gradient_boosting_classifier(train_data,features)
+	# if results["score"] > best_score:
+	# 	best_model_name = "GradientBoosting"
+	# 	best_model = results["model"]
+	# 	best_score = results["score"]
 
-	results = logistic_classifier(train_data,features)
-	if results["score"] > best_score:
-		best_model_name = "Logistic"
-		best_model = results["model"]
-		best_score = results["score"]
+	# results = logistic_classifier(train_data,features)
+	# if results["score"] > best_score:
+	# 	best_model_name = "Logistic"
+	# 	best_model = results["model"]
+	# 	best_score = results["score"]
 
-	results = bayes_classifier(train_data,features)
-	if results["score"] > best_score:
-		best_model_name = "Bayes"
-		best_model = results["model"]
-		best_score = results["score"]
+	# results = bayes_classifier(train_data,features)
+	# if results["score"] > best_score:
+	# 	best_model_name = "Bayes"
+	# 	best_model = results["model"]
+	# 	best_score = results["score"]
 
-	results = neural_network_classifier(train_data,features)
-	if results["score"] > best_score:
-		best_model_name = "Neural Network"
-		best_model = results["model"]
-		best_score = results["score"]
+	# results = neural_network_classifier(train_data,features)
+	# if results["score"] > best_score:
+	# 	best_model_name = "Neural Network"
+	# 	best_model = results["model"]
+	# 	best_score = results["score"]
 
 	# results = grid_search(train_data,features)
 	# if results["score"] > best_score:
@@ -186,38 +184,30 @@ def get_best_model(train_data,features,select_features=False):
 	# 	best_model = results["model"]
 	# 	best_score = results["score"]
 
-	print "Best Model:{0}, score {0}".format(best_model_name, best_score)
+	print "Best Model:{0}, score:{1}".format(best_model_name, best_score)
 
 	return best_model
 
 def predict(model,predict_data,features):
-	predictions = model.predict(predict_data[features])
-
-	predictions_frame = pd.DataFrame(predictions)
 	result = predict_data[["author_id","paper_id"]].copy()
+	predictions = pd.DataFrame(model.predict(predict_data[features]))
 	result["wrote_paper"] = predictions[0]
 
 	print "Saving predictions..."
 	result.sort_values(by="author_id").to_csv("./valid/ValidPredictions.csv", index=False)
 
-def evaluate():
-	valid_predictions = pd.read_csv("./valid/ValidPredictions.csv")
+	return result
 
-	valid_solution = pd.read_csv("./data/ValidSolution.csv")
-	valid_solution = pd.DataFrame(valid_solution.PaperIds.str.split(" ").tolist(), index=valid_solution.AuthorId).stack()
-	valid_solution = valid_solution.reset_index()[['AuthorId', 0]]
-	valid_solution.columns = ["author_id", "paper_id"]
-	valid_solution["paper_id"] = valid_solution["paper_id"].fillna(0).astype(int)
-	valid_solution['wrote_paper_actual'] = 1
+def evaluate(predictions):
+	solution = pd.read_csv("./data/ValidSolution.csv")
+	solution = pd.DataFrame(solution.PaperIds.str.split(" ").tolist(), index=solution.AuthorId).stack()
+	solution = solution.reset_index()[['AuthorId', 0]]
+	solution.columns = ["author_id", "paper_id"]
+	solution["paper_id"] = solution["paper_id"].fillna(0).astype(int)
+	solution["wrote_paper_actual"] = 1
 
-	#predic and real solution merge
-	frames = [valid_predictions,valid_solution]
-	solution_compare = valid_predictions.merge(valid_solution, how="inner", on=["author_id","paper_id"])
-	# merge_predict_and_real.to_csv("merge_predict_and_real.csv", index = False)
-
-	#calculate accuracy
-	df_accu = pd.DataFrame(solution_compare, columns=['y_prediction','wrote_paper_true_result'])
-	solution_compare["correct_predictions"] = np.where((solution_compare["wrote_paper"] == solution_compare["wrote_paper_actual"]),1,0)
+	solution_compare = predictions.merge(solution, how="inner", on=["author_id","paper_id"])
+	solution_compare["correct_prediction"] = np.where((solution_compare["wrote_paper"] == solution_compare["wrote_paper_actual"]),1,0)
 	total_predictions = len(solution_compare)
 	correct_predictions = len(solution_compare[solution_compare["correct_prediction"] == 1])
 	percent_correct = float(correct_predictions) / float(total_predictions)
@@ -229,14 +219,22 @@ def evaluate():
 def main():
 	print "Reading in Training Data"
 	train_data = pd.read_csv("./train/TrainOut.csv")
+	print "Reading in Predict Data"
+	predict_data = pd.read_csv("./valid/ValidOut.csv")
 
 	features = list(train_data.drop(["author_id","paper_id","wrote_paper"], axis=1).columns.values)
 
-	model = get_best_model(train_data, features, False)
+	feature_selection = False
 
-	print "Reading in Valid Data for predictions"
-	valid_data = pd.read_csv("./valid/ValidOut.csv")
-	predict(model, valid_data, features)
+	if feature_selection:
+		num_features = len(features) / 2
+		features = feature_selection(train_data, features, num_features)
+
+	model = get_best_model(train_data, features)
+
+	predictions = predict(model, predict_data, features)
+
+	evaluate(predictions)
 
 
 if __name__ == "__main__": main()
