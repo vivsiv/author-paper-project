@@ -21,7 +21,7 @@ import pickle
 #this file may need to be run individually after we each model. this way saves time. 
 
 # we need train the new testing data and save into valid_data.csv
-dataRead = pd.read_csv('ValidTrainOut.csv')  #the file name could be changed
+valid_predictions = pd.read_csv("valid/ValidPredictions.csv")  #the file name could be changed
 
 # add new features behind:
 X_test = dataRead[["has_author_name",

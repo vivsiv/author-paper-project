@@ -502,18 +502,18 @@ def paper_conference_features(author_join, paper_join, train_out):
 
 	paper_conference_features.rename(
 		columns={
-			"authors_total_conference_count":"pjf1",
-			"min_author_conference_count":"pjf2", 
-			"max_author_conference_count":"pjf3", 
-			"mean_author_conference_count":"pjf4", 
-			"median_author_conference_count":"pjf5", 
-			"dev_author_conference_count":"pjf6", 
-			"authors_total_conference_paper_count":"pjf7",
-			"min_author_conference_paper_count":"pjf8", 
-			"max_author_conference_paper_count":"pjf9", 
-		 	"mean_author_conference_paper_count":"pjf10", 
-		 	"median_author_conference_paper_count":"pjf11", 
-		 	"dev_author_conference_paper_count":"pjf12"
+			"authors_total_conference_count":"pcf1",
+			"min_author_conference_count":"pcf2", 
+			"max_author_conference_count":"pcf3", 
+			"mean_author_conference_count":"pcf4", 
+			"median_author_conference_count":"pcf5", 
+			"dev_author_conference_count":"pcf6", 
+			"authors_total_conference_paper_count":"pcf7",
+			"min_author_conference_paper_count":"pcf8", 
+			"max_author_conference_paper_count":"pcf9", 
+		 	"mean_author_conference_paper_count":"pcf10", 
+		 	"median_author_conference_paper_count":"pcf11", 
+		 	"dev_author_conference_paper_count":"pcf12"
 		}, 
 		inplace=True)
 
@@ -563,45 +563,82 @@ def paper_year_features(author_join, paper_join, train_out):
 
 
 def main():
+	base = "train"
+	if len(sys.argv) > 1 and sys.argv[1] == "valid":
+		base = "valid"
+
+	print "Building features for: {0}...".format(base.capitalize())
+
+	save_intermediate = True
+
+	print "save_intermediate == {0}".format(save_intermediate)
+
 	print "Reading author_info"
 	author_info = pd.read_pickle("./pkl/author_info.pkl")
 	print "Reading author_join"
 	author_join = pd.read_pickle("./pkl/author_join.pkl")
 	print "Reading paper_join"
 	paper_join = pd.read_pickle("./pkl/paper_join.pkl")
-	print "Reading train_base"
-	train_out = pd.read_pickle("./pkl/train_base.pkl")
+	print "Reading {0}_base".format(base)
+	train_out = pd.read_pickle("./pkl/{0}_base.pkl".format(base))
+
+	feature_dfs = []
 
 	a_features = author_features(author_join, train_out)
-	a_features.sort_values(by="author_id").to_csv("./train/author_features.csv", index=False, columns=list(a_features.columns.values))
+	if save_intermediate:
+		a_features.sort_values(by="author_id").to_csv("./{0}/author_features.csv".format(base), index=False, columns=list(a_features.columns.values))
+	feature_dfs.append(a_features)
 
 	a_journal_features = author_journal_features(author_join, paper_join, train_out)
-	a_journal_features.sort_values(by="author_id").to_csv("./train/author_journal_features.csv", index=False, columns=list(a_journal_features.columns.values))
+	if save_intermediate:
+		a_journal_features.sort_values(by="author_id").to_csv("./{0}/author_journal_features.csv".format(base), index=False, columns=list(a_journal_features.columns.values))
+	feature_dfs.append(a_journal_features.drop(["author_id", "paper_id"], axis=1))
 
 	a_conference_features = author_conference_features(author_join, paper_join, train_out)
-	a_conference_features.sort_values(by="author_id").to_csv("./train/author_conference_features.csv", index=False, columns=list(a_conference_features.columns.values))
+	if save_intermediate:
+		a_conference_features.sort_values(by="author_id").to_csv("./{0}/author_conference_features.csv".format(base), index=False, columns=list(a_conference_features.columns.values))
+	feature_dfs.append(a_conference_features.drop(["author_id", "paper_id"], axis=1))
 
 	a_affiliation_features = author_affiliation_features(author_info, author_join, train_out)
-	a_affiliation_features.sort_values(by="author_id").to_csv("./train/author_affiliation_features.csv", index=False, columns=list(a_affiliation_features.columns.values))
+	if save_intermediate:
+		a_affiliation_features.sort_values(by="author_id").to_csv("./{0}/author_affiliation_features.csv".format(base), index=False, columns=list(a_affiliation_features.columns.values))
+	feature_dfs.append(a_affiliation_features.drop(["author_id", "paper_id"], axis=1))
 
 	a_year_features = author_year_features(paper_join, train_out)
-	a_year_features.sort_values(by="author_id").to_csv("./train/author_year_features.csv", index=False, columns=list(a_year_features.columns.values))
+	if save_intermediate:
+		a_year_features.sort_values(by="author_id").to_csv("./{0}/author_year_features.csv".format(base), index=False, columns=list(a_year_features.columns.values))
+	feature_dfs.append(a_year_features.drop(["author_id", "paper_id"], axis=1))
 
 	p_features = paper_features(author_join, paper_join, train_out)
-	p_features.sort_values(by="author_id").to_csv("./train/paper_features.csv", index=False, columns=list(p_features.columns.values))
+	if save_intermediate:
+		p_features.sort_values(by="author_id").to_csv("./{0}/paper_features.csv".format(base), index=False, columns=list(p_features.columns.values))
+	feature_dfs.append(p_features.drop(["author_id", "paper_id"], axis=1))
 
-	pj_features = paper_journal_features(author_join, paper_join, train_out)
-	pj_features.sort_values(by="author_id").to_csv("./train/paper_journal_features.csv", index=False, columns=list(pj_features.columns.values))
+	p_journal_features = paper_journal_features(author_join, paper_join, train_out)
+	if save_intermediate:
+		p_journal_features.sort_values(by="author_id").to_csv("./{0}/paper_journal_features.csv".format(base), index=False, columns=list(p_journal_features.columns.values))
+	feature_dfs.append(p_journal_features.drop(["author_id", "paper_id"], axis=1))
 
-	pc_features = paper_conference_features(author_join, paper_join, train_out)
-	pc_features.sort_values(by="author_id").to_csv("./train/paper_conference_features.csv", index=False, columns=list(pc_features.columns.values))
+	p_conference_features = paper_conference_features(author_join, paper_join, train_out)
+	if save_intermediate:
+		p_conference_features.sort_values(by="author_id").to_csv("./{0}/paper_conference_features.csv".format(base), index=False, columns=list(p_conference_features.columns.values))
+	feature_dfs.append(p_conference_features.drop(["author_id", "paper_id"], axis=1))
 
-	py_features = paper_year_features(author_join, paper_join, train_out)
-	py_features.sort_values(by="author_id").to_csv("./train/paper_year_features.csv", index=False, columns=list(py_features.columns.values))
+	p_year_features = paper_year_features(author_join, paper_join, train_out)
+	if save_intermediate:
+		p_year_features.sort_values(by="author_id").to_csv("./{0}/paper_year_features.csv".format(base), index=False, columns=list(p_year_features.columns.values))
+	feature_dfs.append(p_year_features.drop(["author_id", "paper_id"], axis=1))
 
-	# out_columns = list(train_out.drop(["wrote_paper"], axis=1).columns.values)
-	# out_columns.append("wrote_paper")
-	# train_out.sort_values(by="author_id").to_csv("./train/TrainOut.csv", index=False, columns=out_columns)
+	merged_features = pd.concat(feature_dfs, axis=1)
+
+	train_out = pd.merge(train_out, merged_features, how="left", on=["author_id", "paper_id"])
+
+	if base == "train":
+		out_columns = list(train_out.drop(["wrote_paper"], axis=1).columns.values)
+		out_columns.append("wrote_paper")
+		train_out.sort_values(by="author_id").to_csv("./{0}/{1}Out.csv".format(base, base.capitalize()), index=False, columns=out_columns)
+	else:
+		train_out.sort_values(by="author_id").to_csv("./{0}/{1}Out.csv".format(base, base.capitalize()), index=False)
 
 
 if __name__ == "__main__": main()
