@@ -10,6 +10,7 @@ import sklearn.linear_model as linear
 import sklearn.naive_bayes as nb
 import sklearn.neural_network as nn
 import sklearn.feature_selection as fs
+import sklearn.grid_search as gs
 from sklearn.model_selection import cross_val_score
 
 
@@ -117,7 +118,7 @@ def grid_search(train_data,features,predict,cv_folds=5):
 	for model_name,model_info in models.iteritems():
 		model = model_info[0]
 		params = model_info[1]
-		grid_model = sk.grid_search.GridSearchCV(model,params,verbose=5,n_jobs=1,cv=cv_folds)
+		grid_model = gs.GridSearchCV(model,params,verbose=5,n_jobs=1,cv=cv_folds)
 		grid_model.fit(train_data[features], train_data["wrote_paper"])
 		grid_searches[model_name] = grid_model
 
@@ -196,6 +197,13 @@ def predict(model,predict_data,features):
 	print "Saving predictions..."
 	result.sort_values(by="author_id").to_csv("./valid/ValidPredictions.csv", index=False)
 
+	prob_result = predict_data[["author_id","paper_id"]].copy()
+	probabilities = pd.DataFrame(model.predict_proba(predict_data[features]))
+	prob_result["wrote_paper_prob"] = probabilities[0]
+
+	print "Saving probabilities..."
+	prob_result.sort_values(by="author_id").to_csv("./valid/ValidProbabilities.csv", index=False)
+
 	return result
 
 def evaluate(predictions):
@@ -224,10 +232,10 @@ def main():
 
 	features = list(train_data.drop(["author_id","paper_id","wrote_paper"], axis=1).columns.values)
 
-	feature_selection = False
+	select_features = False
 
-	if feature_selection:
-		num_features = len(features) / 2
+	if select_features:
+		num_features = 60
 		features = feature_selection(train_data, features, num_features)
 
 	model = get_best_model(train_data, features)
