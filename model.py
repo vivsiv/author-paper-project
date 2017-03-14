@@ -144,41 +144,41 @@ def get_best_model(train_data,features,select_features=False):
 		best_model = results["model"]
 		best_score = results["score"]
 
-	# results = decision_tree_classifier(train_data,features)
-	# if results["score"] > best_score:
-	# 	best_model_name = "DecisionTree"
-	# 	best_model = results["model"]
-	# 	best_score = results["score"]
+	results = decision_tree_classifier(train_data,features)
+	if results["score"] > best_score:
+		best_model_name = "DecisionTree"
+		best_model = results["model"]
+		best_score = results["score"]
 
-	# results = adaboost_classifier(train_data,features)
-	# if results["score"] > best_score:
-	# 	best_model_name = "Adaboost"
-	# 	best_model = results["model"]
-	# 	best_score = results["score"]
+	results = adaboost_classifier(train_data,features)
+	if results["score"] > best_score:
+		best_model_name = "Adaboost"
+		best_model = results["model"]
+		best_score = results["score"]
 
-	# 	results = gradient_boosting_classifier(train_data,features)
-	# if results["score"] > best_score:
-	# 	best_model_name = "GradientBoosting"
-	# 	best_model = results["model"]
-	# 	best_score = results["score"]
+		results = gradient_boosting_classifier(train_data,features)
+	if results["score"] > best_score:
+		best_model_name = "GradientBoosting"
+		best_model = results["model"]
+		best_score = results["score"]
 
-	# results = logistic_classifier(train_data,features)
-	# if results["score"] > best_score:
-	# 	best_model_name = "Logistic"
-	# 	best_model = results["model"]
-	# 	best_score = results["score"]
+	results = logistic_classifier(train_data,features)
+	if results["score"] > best_score:
+		best_model_name = "Logistic"
+		best_model = results["model"]
+		best_score = results["score"]
 
-	# results = bayes_classifier(train_data,features)
-	# if results["score"] > best_score:
-	# 	best_model_name = "Bayes"
-	# 	best_model = results["model"]
-	# 	best_score = results["score"]
+	results = bayes_classifier(train_data,features)
+	if results["score"] > best_score:
+		best_model_name = "Bayes"
+		best_model = results["model"]
+		best_score = results["score"]
 
-	# results = neural_network_classifier(train_data,features)
-	# if results["score"] > best_score:
-	# 	best_model_name = "Neural Network"
-	# 	best_model = results["model"]
-	# 	best_score = results["score"]
+	results = neural_network_classifier(train_data,features)
+	if results["score"] > best_score:
+		best_model_name = "Neural Network"
+		best_model = results["model"]
+		best_score = results["score"]
 
 	# results = grid_search(train_data,features)
 	# if results["score"] > best_score:
