@@ -11,6 +11,8 @@ string_replacements = {
 }
 
 def main():
+	print "--- START data_proc.py ---"
+	
 	train_file = "./data/Train.csv"
 	print "Reading Train.csv from {0}".format(train_file)
 	train_csv = pd.read_csv(train_file)
@@ -42,10 +44,6 @@ def main():
 
 	author_df["author_name_clean"] = author_df["author_name"].replace(string_replacements, regex=True).str.lower()
 	author_df["author_affiliation_clean"] = author_df["author_affiliation"].replace(string_replacements, regex=True).str.lower()
-	
-	print "Saving author_info to ./pkl/author_info.pkl"
-	author_df.to_pickle("./pkl/author_info.pkl")
-
 
 	# Paper.csv
 	paper_data = "./data/Paper.csv"
@@ -112,6 +110,7 @@ def main():
 	valid_data = valid_data.reset_index()[['AuthorId', 0]]
 	valid_data.columns = ["author_id", "paper_id"]
 	valid_data["paper_id"] = valid_data["paper_id"].fillna(0).astype(int)
+	print "Saving valid_base to ./pkl/valid_base.pkl"
 	valid_data.to_pickle("./pkl/valid_base.pkl")
 
 	# ValidSolution.csv
@@ -124,6 +123,7 @@ def main():
 	valid_solution_data.columns = ["author_id", "paper_id"]
 	valid_solution_data["paper_id"] = valid_solution_data["paper_id"].fillna(0).astype(int)
 	valid_solution_data["wrote_paper_actual"] = 1
+	print "Saving valid_solution to ./pkl/valid_solution.pkl"
 	valid_solution_data.to_pickle("./pkl/valid_solution.pkl")
 
 	# Test.csv
@@ -135,7 +135,10 @@ def main():
 	test_data = test_data.reset_index()[['AuthorId', 0]]
 	test_data.columns = ["author_id", "paper_id"]
 	test_data["paper_id"] = test_data["paper_id"].fillna(0).astype(int)
+	print "Saving test_base to ./pkl/test_base.pkl"
 	test_data.to_pickle("./pkl/test_base.pkl")
+
+	print "--- END data_proc.py ---"
 
 
 if __name__ == "__main__": main()

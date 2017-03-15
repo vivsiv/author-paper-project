@@ -602,6 +602,8 @@ def paper_year_features(author_join, paper_join, train_out):
 
 
 def main():
+	print "--- START feature_eng.py ---"
+
 	base = "train"
 	if len(sys.argv) > 1:
 		if sys.argv[1] == "valid":
@@ -697,6 +699,8 @@ def main():
 		train_out.sort_values(by="author_id").to_csv("./{0}/{1}Out.csv".format(base, base.capitalize()), index=False, columns=out_columns)
 	else:
 		train_out.sort_values(by="author_id").to_csv("./{0}/{1}Out.csv".format(base, base.capitalize()), index=False)
+
+	print "--- END feature_eng.py ---"
 
 
 if __name__ == "__main__": main()

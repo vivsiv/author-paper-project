@@ -1,51 +1,70 @@
 # author-paper-project
 CS 249 final project
 
-Feature List
 
-Has Features
-1. The (paper_id, author_id) combo has a Name in Author.csv
-2. The (paper_id, author_id) combo has an Affiliation in Author.csv
-3. The (paper_id, author_id) combo has a Title in Paper.csv
-4. The (paper_id, author_id) combo has a Year in Paper.csv
-5. The (paper_id, author_id) combo has a ConferenceId in Paper.csv
-6. The (paper_id, author_id) combo has a JournalId in Paper.csv
-7. The (paper_id, author_id) combo has a Keyword in Paper.csv
+Required Libraries:
+To run this program you will need python and the following libraries:
+  - pandas
+  - numpy
+  - sklearn
+  - pickle
+  - jellyfish
+ All of these libraries can be installed via pip
 
-Name Distance Features
-1. Edit distance between the clean name in Author.csv and clean name in PaperAuthor.csv for a (paper_id, author_id) combo
-2. Edit distance between the first name in Author.csv and first name in PaperAuthor.csv for a (paper_id, author_id)_ combo
-3. Edit distance between the last name in Author.csv and last name in PaperAuthor.csv for a (paper_id, author_id) combo
-4. Jaro distance between the clean name in Author.csv and clean name in PaperAuthor.csv for a (paper_id, author_id) combo
-5. Jaro distance between the first name in Author.csv and first name in PaperAuthor.csv for a (paper_id, author_id) combo
-6. Jaro distance between the last name in Author.csv and last name in PaperAuthor.csv for a (paper_id, author_id) combo
-
-Affiliation Distance Features
-1. Edit distance between the clean affiliation in Author.csv and clean name in PaperAuthor.csv for a (paper_id, author_id) combo
-2. Jaro distance between the clean affiliation in Author.csv and clean name in PaperAuthor.csv for a (paper_id, author_id) combo
-
-Year Features
-1. Difference between the author's minimum publish year and the paper's publish year for a (paper_id, author_id) combo
-2. Difference between the author's maximum publish year and the paper's publish year for a (paper_id, author_id) combo
-3. Difference between the author's mean publish year and the paper's publish year for a (paper_id, author_id) combo
-4. Difference between the author's median publish year and the paper's publish year for a (paper_id, author_id) combo
-
-Coauthor Features
-1. Num of authors for a paper
-**2. Minumum Distance between the affiliation of an Author's affiliation and their Co-Authors' Affiliations for a (paper_id, author_id) combo
-**3. Maximum Distance between the affilliation of an Author's affiliation and their Co-Authors' Affiliations for a (paper_id, author_id) combo
-**4. Number of common papers between an Author and their Co-Authors for a (paper_id, author_id) combo
-
-Author Paper Features
-1. Number of papers by each author
-2. Number of conferences of each author
-3. Number of journals of each author
+Directory Structure: Prior to running the program the workind directory should look like this:
+./
+ data/
+ pkl/
+ test/
+ train/
+ valid/
+ feature_eng.py
+ merge_features.py
+ model.py
+ run_all.py
 
 
+Getting the data:
+All relevant data files can be acquired from here: https://www.kaggle.com/c/kdd-cup-2013-author-paper-identification-challenge/data
+Download: dataRev2.zip, Test.csv, ValidSolution.csv
+dataRev2.zip unpacks into: Author.csv, Conference.csv, Journal.csv, Paper.csv, PaperAuthor.csv, Train.csv, Valid.csv
+Move all csv files into the data/ folder
 
-## the order of running modeling and validation
-1 valid_train_features.py
-2 any model  .py
-3 test_model.py   -> this file will print out accuracy
+Running the Program
+The run_all.py script can be used to run the whole program: data processing, feature engineering, modelling, and predictions.
+Run it by calling: "python run_all.py"
+
+Running this program will require at least 8GB of memory, 10 to be safe.
+
+data_proc.py will run first and save the following files in pkl/
+	- author_join.pkl
+	- paper_info.pkl
+	- paper_join.pkl
+	- test_base.pkl
+	- train_base.pkl
+	- valid_base.pkl
+	- valid_solution.pkl
+	data_proc.py can be run on its own by calling: "python data_proc.py"
+
+feature_eng.py will run second and save:
+	- TrainOut.csv in train/
+	- ValidOut.csv in valid/
+	- TestOut.csv in test/
+
+	feature_eng.py can be run on its own by calling: "python feature_eng.py < base > < save_intermediate >"
+	- base: {train, valid, test} is the file that features will be engineered on
+	- save_intermediate: { save_intermediate } is an optional parameter that will save the intermediate feature csvs. 
+	Intermediate csvs can be merged with merge_features.py
+
+model.py will run last and save:
+	- ValidPredictions.csv in valid/
+	- TestProbabilities.csv in test/
+	- Submission.csv in .
+	model.py can be run on its own by calling: "python model.py < base > < num_features >"
+
+	- base: {valid, test} is the file that predictions will be made on
+	- num_features: { any int } is an optional parameter that will perform feature selection of num_features features
+	If you want to try testing the various models uncomment line 272 in model.py
+	If you want to run cross validation on the best model uncomment lines 280-283 in model.py
 
 
