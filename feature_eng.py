@@ -143,38 +143,41 @@ def author_conference_features(author_join, paper_join, train_out):
 
 	return author_conference_features
 
-def author_affiliation_features(author_info, author_join, train_out):
+def author_affiliation_features(author_join, train_out):
 	print "Generating author affiliation features"
 	author_affiliation_features = pd.merge(train_out[["author_id","paper_id"]], 
-		author_join[["author_id", "paper_id", "author_affiliation_clean"]], 
+		author_join[["author_id", "paper_id", "author_affiliation_clean", "paper_author_affiliation_clean"]], 
 		how="left", on=["author_id", "paper_id"])
 
-	valid_affiliation = author_info[author_info["author_affiliation_clean"] != ""].copy()
-
-	# 1. Number of authors with the same affiliation
-	same_affiliation_count = valid_affiliation.groupby("author_affiliation_clean")["author_id"].nunique().reset_index(name="same_affiliation_count")
-	author_affiliation_features = pd.merge(author_affiliation_features, same_affiliation_count, how="left", on="author_affiliation_clean")
-	author_affiliation_features["same_affiliation_count"] = author_affiliation_features["same_affiliation_count"].fillna(0).astype(int)
-	author_affiliation_features.drop(["author_affiliation_clean"], axis=1, inplace=True)
+	# 1. Number of authors with the same affiliation in Author.csv
+	same_affiliation_count_author = author_join[author_join["author_affiliation_clean"] != ""].groupby("author_affiliation_clean")["author_id"].nunique().reset_index(name="same_affiliation_count_author")
+	author_affiliation_features = pd.merge(author_affiliation_features, same_affiliation_count_author, how="left", on="author_affiliation_clean")
+	author_affiliation_features["same_affiliation_count_author"] = author_affiliation_features["same_affiliation_count_author"].fillna(0).astype(int)
+	
 
 	# 2-3. String Distance between affiliation in Author.csv and affiliation in PaperAuthor.csv
-	valid_affiliation = author_join[author_join["author_affiliation_clean"] != ""].copy()
-	valid_affiliation["affiliation_lev_dist"] = valid_affiliation.apply(
+	author_affiliation_features["affiliation_lev_dist"] = author_affiliation_features.apply(
 		lambda row: jf.levenshtein_distance(unicode(row["author_affiliation_clean"]), unicode(row["paper_author_affiliation_clean"])), 
 		axis=1)
-	valid_affiliation["affiliation_jaro_dist"] = valid_affiliation.apply(
+	author_affiliation_features["affiliation_jaro_dist"] = author_affiliation_features.apply(
 		lambda row: jf.jaro_distance(unicode(row["author_affiliation_clean"]), unicode(row["paper_author_affiliation_clean"])), 
 		axis=1)
-	author_affiliation_features = pd.merge(author_affiliation_features, 
-		valid_affiliation[["author_id","paper_id","affiliation_lev_dist","affiliation_jaro_dist"]], how="left", on=["author_id", "paper_id"])
-	author_affiliation_features["affiliation_lev_dist"] = author_affiliation_features["affiliation_lev_dist"].fillna(1).astype(int)
-	author_affiliation_features["affiliation_jaro_dist"] = author_affiliation_features["affiliation_jaro_dist"].fillna(0.5).round(3)
+	author_affiliation_features["affiliation_lev_dist"] = author_affiliation_features["affiliation_lev_dist"].fillna(0).astype(int)
+	author_affiliation_features["affiliation_jaro_dist"] = author_affiliation_features["affiliation_jaro_dist"].fillna(0.0).round(3)
+
+	# 4. Number of with the same affiliation in PaperAuthor.csv
+	same_affiliation_count_paper = author_join[author_join["paper_author_affiliation_clean"] != ""].groupby("paper_author_affiliation_clean")["author_id"].nunique().reset_index(name="same_affiliation_count_paper")
+	author_affiliation_features = pd.merge(author_affiliation_features, same_affiliation_count_paper, how="left", on="paper_author_affiliation_clean")
+	author_affiliation_features["same_affiliation_count_paper"] = author_affiliation_features["same_affiliation_count_paper"].fillna(0).astype(int)
+
+	author_affiliation_features.drop(["author_affiliation_clean", "paper_author_affiliation_clean"], axis=1, inplace=True)
 
 	author_affiliation_features.rename(
 		columns={
-			"same_affiliation_count":"aaf1",
+			"same_affiliation_count_author":"aaf1",
 			"affiliation_lev_dist":"aaf2",
-			"affiliation_jaro_dist":"aaf3"
+			"affiliation_jaro_dist":"aaf3",
+			"same_affiliation_count_paper":"aaf4"
 		}, 
 		inplace=True)
 
@@ -239,40 +242,76 @@ def author_year_features(paper_join, train_out):
 	return author_year_features
 
 def author_name_features(author_join, train_out):
-	# Name Distance Features
 	print "Generating author name features"
-	name_df = author_join[["author_id", "paper_id", "author_name", "author_name_clean", "paper_author_name", "paper_author_name_clean"]].copy()
-	author_name_splits =  name_df['author_name_clean'].str.split(' ', 1, expand=True)
-	name_df["author_first_name"] = author_name_splits[0]
-	name_df["author_last_name"] = author_name_splits[1]
+	author_name_splits =  author_join["author_name_clean"].str.split(' ', 1, expand=True)
+	author_join["author_first_name"] = author_name_splits[0].fillna("")
+	author_join["author_last_name"] = author_name_splits[1].fillna("").apply(lambda name: name.split(" ")[-1])
 
-	paper_author_name_splits =  name_df['paper_author_name_clean'].str.split(' ', 1, expand=True)
-	name_df["paper_author_first_name"] = paper_author_name_splits[0]
-	name_df["paper_author_last_name"] = paper_author_name_splits[1]
+	paper_author_name_splits =  author_join["paper_author_name_clean"].str.split(' ', 1, expand=True)
+	author_join["paper_author_first_name"] = paper_author_name_splits[0].fillna("")
+	author_join["paper_author_last_name"] = paper_author_name_splits[1].fillna("").apply(lambda name: name.split(" ")[-1])
 
-	name_features = name_df[["author_id", "paper_id"]].copy()
+	author_name_features = pd.merge(train_out[["author_id","paper_id"]], 
+		author_join[["author_id", "paper_id", "author_name_clean", "author_first_name", "author_last_name","paper_author_name_clean", "paper_author_first_name", "paper_author_last_name"]], 
+		how="left", on=["author_id", "paper_id"])
 
-	name_features["name_clean_lev_dist"] = name_df.apply(
+
+	# 1. Authors with the same last name in Author.csv
+	same_last_name_count_author = author_join.groupby("author_last_name")["author_id"].nunique().reset_index(name="same_last_name_count_author")
+	author_name_features = pd.merge(author_name_features, same_last_name_count_author, how="left", on="author_last_name")
+	author_name_features["same_last_name_count_author"] = author_name_features["same_last_name_count_author"].fillna(0).astype(int)
+
+	# 2. Authors with the same last name in PaperAuthor.csv
+	same_last_name_count_paper = author_join.groupby("paper_author_last_name")["author_id"].nunique().reset_index(name="same_last_name_count_paper")
+	author_name_features = pd.merge(author_name_features, same_last_name_count_paper, how="left", on="paper_author_last_name")
+	author_name_features["same_last_name_count_paper"] = author_name_features["same_last_name_count_paper"].fillna(0).astype(int)
+
+	# 3-4. Distance between names in Author.csv and PaperAuthor.csv
+	author_name_features["name_lev_dist"] = author_name_features.apply(
 		lambda row: jf.levenshtein_distance(unicode(row["author_name_clean"]), unicode(row["paper_author_name_clean"])), 
 		axis=1)
-	name_features["first_name_lev_dist"] = name_df.apply(
-		lambda row: jf.levenshtein_distance(unicode(row["author_first_name"]), unicode(row["paper_author_first_name"])), 
-		axis=1)
-	name_features["last_name_lev_dist"] = name_df.apply(
-		lambda row: jf.levenshtein_distance(unicode(row["author_last_name"]), unicode(row["paper_author_last_name"])), 
-		axis=1)
-
-	name_features["name_clean_jaro_dist"] = name_df.apply(
+	author_name_features["name_jaro_dist"] = author_name_features.apply(
 		lambda row: jf.jaro_distance(unicode(row["author_name_clean"]), unicode(row["paper_author_name_clean"])), 
 		axis=1)
-	name_features["first_name_jaro_dist"] = name_df.apply(
-		lambda row: jf.jaro_distance(unicode(row["author_first_name"]), unicode(row["paper_author_first_name"])), 
+	author_name_features["name_lev_dist"] = author_name_features["name_lev_dist"].fillna(0).astype(int)
+	author_name_features["name_jaro_dist"] = author_name_features["name_jaro_dist"].fillna(0.0).round(3)
+
+	# 5-6. Distance between last names in Author.csv and PaperAuthor.csv
+	author_name_features["last_name_lev_dist"] = author_name_features.apply(
+		lambda row: jf.levenshtein_distance(unicode(row["author_last_name"]), unicode(row["paper_author_last_name"])), 
 		axis=1)
-	name_features["last_name_jaro_dist"] = name_df.apply(
+	author_name_features["last_name_jaro_dist"] = author_name_features.apply(
 		lambda row: jf.jaro_distance(unicode(row["author_last_name"]), unicode(row["paper_author_last_name"])), 
 		axis=1)
+	author_name_features["last_name_lev_dist"] = author_name_features["last_name_lev_dist"].fillna(0).astype(int)
+	author_name_features["last_name_jaro_dist"] = author_name_features["last_name_jaro_dist"].fillna(0.0).round(3)
 
-	return name_features
+	# 7-8. Distance between first names in Author.csv and PaperAuthor.csv
+	author_name_features["first_name_lev_dist"] = author_name_features.apply(
+		lambda row: jf.levenshtein_distance(unicode(row["author_first_name"]), unicode(row["paper_author_first_name"])), 
+		axis=1)
+	author_name_features["first_name_jaro_dist"] = author_name_features.apply(
+		lambda row: jf.jaro_distance(unicode(row["author_first_name"]), unicode(row["paper_author_first_name"])), 
+		axis=1)
+	author_name_features["first_name_lev_dist"] = author_name_features["first_name_lev_dist"].fillna(0).astype(int)
+	author_name_features["first_name_jaro_dist"] = author_name_features["first_name_jaro_dist"].fillna(0.0).round(3)
+
+	author_name_features.drop(["author_name_clean", "author_first_name", "author_last_name","paper_author_name_clean", "paper_author_first_name", "paper_author_last_name"], axis=1, inplace=True)
+
+	author_name_features.rename(
+		columns={
+			"same_last_name_count_author":"anf1",
+			"same_last_name_count_paper":"anf2",
+			"name_lev_dist":"anf3",
+			"name_jaro_dist":"anf4",
+			"last_name_lev_dist":"anf5",
+			"last_name_jaro_dist":"anf6",
+			"first_name_lev_dist":"anf7",
+			"first_name_jaro_dist":"anf8",
+		}, 
+		inplace=True)
+
+	return author_name_features
 
 
 def paper_features(author_join, paper_join, train_out):
@@ -565,16 +604,18 @@ def paper_year_features(author_join, paper_join, train_out):
 def main():
 	base = "train"
 	if len(sys.argv) > 1 and sys.argv[1] == "valid":
+		if sys.argv[1] == "valid":
+			base = "valid"
+		elif sys.argv[1] == "test":
+			base = "test"
 		base = "valid"
+	print "Building features for: {0}.csv...".format(base.capitalize())
 
-	print "Building features for: {0}...".format(base.capitalize())
+	save_intermediate = False
+	if len(sys.argv) > 2 and sys.argv[2] == "save_intermediate":
+		save_intermediate = True
+		print "Saving intermediates in:./{0}/ ...".format(base)
 
-	save_intermediate = True
-
-	print "save_intermediate == {0}".format(save_intermediate)
-
-	print "Reading author_info"
-	author_info = pd.read_pickle("./pkl/author_info.pkl")
 	print "Reading author_join"
 	author_join = pd.read_pickle("./pkl/author_join.pkl")
 	print "Reading paper_join"
@@ -585,52 +626,68 @@ def main():
 	feature_dfs = []
 
 	a_features = author_features(author_join, train_out)
+	feature_dfs.append(a_features)
 	if save_intermediate:
 		a_features.sort_values(by="author_id").to_csv("./{0}/author_features.csv".format(base), index=False, columns=list(a_features.columns.values))
-	feature_dfs.append(a_features)
+	
 
 	a_journal_features = author_journal_features(author_join, paper_join, train_out)
+	feature_dfs.append(a_journal_features.drop(["author_id", "paper_id"], axis=1))
 	if save_intermediate:
 		a_journal_features.sort_values(by="author_id").to_csv("./{0}/author_journal_features.csv".format(base), index=False, columns=list(a_journal_features.columns.values))
-	feature_dfs.append(a_journal_features.drop(["author_id", "paper_id"], axis=1))
+	
 
 	a_conference_features = author_conference_features(author_join, paper_join, train_out)
+	feature_dfs.append(a_conference_features.drop(["author_id", "paper_id"], axis=1))
 	if save_intermediate:
 		a_conference_features.sort_values(by="author_id").to_csv("./{0}/author_conference_features.csv".format(base), index=False, columns=list(a_conference_features.columns.values))
-	feature_dfs.append(a_conference_features.drop(["author_id", "paper_id"], axis=1))
+	
 
-	a_affiliation_features = author_affiliation_features(author_info, author_join, train_out)
+	a_affiliation_features = author_affiliation_features(author_join, train_out)
+	feature_dfs.append(a_affiliation_features.drop(["author_id", "paper_id"], axis=1))
 	if save_intermediate:
 		a_affiliation_features.sort_values(by="author_id").to_csv("./{0}/author_affiliation_features.csv".format(base), index=False, columns=list(a_affiliation_features.columns.values))
-	feature_dfs.append(a_affiliation_features.drop(["author_id", "paper_id"], axis=1))
+	
 
 	a_year_features = author_year_features(paper_join, train_out)
+	feature_dfs.append(a_year_features.drop(["author_id", "paper_id"], axis=1))
 	if save_intermediate:
 		a_year_features.sort_values(by="author_id").to_csv("./{0}/author_year_features.csv".format(base), index=False, columns=list(a_year_features.columns.values))
-	feature_dfs.append(a_year_features.drop(["author_id", "paper_id"], axis=1))
-
+	
+	
+	a_name_features = author_name_features(author_join, train_out)
+	feature_dfs.append(a_name_features.drop(["author_id", "paper_id"], axis=1))
+	if save_intermediate:
+		a_name_features.sort_values(by="author_id").to_csv("./{0}/author_name_features.csv".format(base), index=False, columns=list(a_name_features.columns.values))
+	
+	
 	p_features = paper_features(author_join, paper_join, train_out)
+	feature_dfs.append(p_features.drop(["author_id", "paper_id"], axis=1))
 	if save_intermediate:
 		p_features.sort_values(by="author_id").to_csv("./{0}/paper_features.csv".format(base), index=False, columns=list(p_features.columns.values))
-	feature_dfs.append(p_features.drop(["author_id", "paper_id"], axis=1))
+	
 
 	p_journal_features = paper_journal_features(author_join, paper_join, train_out)
+	feature_dfs.append(p_journal_features.drop(["author_id", "paper_id"], axis=1))
 	if save_intermediate:
 		p_journal_features.sort_values(by="author_id").to_csv("./{0}/paper_journal_features.csv".format(base), index=False, columns=list(p_journal_features.columns.values))
-	feature_dfs.append(p_journal_features.drop(["author_id", "paper_id"], axis=1))
+	
 
+	
 	p_conference_features = paper_conference_features(author_join, paper_join, train_out)
+	feature_dfs.append(p_conference_features.drop(["author_id", "paper_id"], axis=1))
 	if save_intermediate:
 		p_conference_features.sort_values(by="author_id").to_csv("./{0}/paper_conference_features.csv".format(base), index=False, columns=list(p_conference_features.columns.values))
-	feature_dfs.append(p_conference_features.drop(["author_id", "paper_id"], axis=1))
+	
 
+	
 	p_year_features = paper_year_features(author_join, paper_join, train_out)
+	feature_dfs.append(p_year_features.drop(["author_id", "paper_id"], axis=1))
 	if save_intermediate:
 		p_year_features.sort_values(by="author_id").to_csv("./{0}/paper_year_features.csv".format(base), index=False, columns=list(p_year_features.columns.values))
-	feature_dfs.append(p_year_features.drop(["author_id", "paper_id"], axis=1))
-
+	
+	
 	merged_features = pd.concat(feature_dfs, axis=1)
-
 	train_out = pd.merge(train_out, merged_features, how="left", on=["author_id", "paper_id"])
 
 	if base == "train":
