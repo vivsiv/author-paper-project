@@ -603,12 +603,13 @@ def paper_year_features(author_join, paper_join, train_out):
 
 def main():
 	base = "train"
-	if len(sys.argv) > 1 and sys.argv[1] == "valid":
+	if len(sys.argv) > 1:
 		if sys.argv[1] == "valid":
 			base = "valid"
 		elif sys.argv[1] == "test":
 			base = "test"
-		base = "valid"
+		else:
+			base = "train"
 	print "Building features for: {0}.csv...".format(base.capitalize())
 
 	save_intermediate = False

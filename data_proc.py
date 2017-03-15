@@ -108,13 +108,35 @@ def main():
 	print "Reading Valid.csv from {0}".format(valid_file)
 	valid_csv = pd.read_csv(valid_file)
 
-
 	valid_data = pd.DataFrame(valid_csv.PaperIds.str.split(" ").tolist(), index=valid_csv.AuthorId).stack()
 	valid_data = valid_data.reset_index()[['AuthorId', 0]]
 	valid_data.columns = ["author_id", "paper_id"]
 	valid_data["paper_id"] = valid_data["paper_id"].fillna(0).astype(int)
 	valid_data.to_pickle("./pkl/valid_base.pkl")
-	# valid_data["wrote_paper"] = 1
+
+	# ValidSolution.csv
+	valid_solution_file = "./data/ValidSolution.csv"
+	print "Reading ValidSolution.csv from {0}".format(valid_solution_file)
+	valid_solution_csv = pd.read_csv(valid_solution_file)
+
+	valid_solution_data = pd.DataFrame(valid_solution_csv.PaperIds.str.split(" ").tolist(), index=valid_solution_csv.AuthorId).stack()
+	valid_solution_data = valid_solution_data.reset_index()[['AuthorId', 0]]
+	valid_solution_data.columns = ["author_id", "paper_id"]
+	valid_solution_data["paper_id"] = valid_solution_data["paper_id"].fillna(0).astype(int)
+	valid_solution_data["wrote_paper_actual"] = 1
+	valid_solution_data.to_pickle("./pkl/valid_solution.pkl")
+
+	# Test.csv
+	test_file = "./data/Test.csv"
+	print "Reading Test.csv from {0}".format(test_file)
+	test_csv = pd.read_csv(test_file)
+
+	test_data = pd.DataFrame(test_csv.PaperIds.str.split(" ").tolist(), index=test_csv.AuthorId).stack()
+	test_data = test_data.reset_index()[['AuthorId', 0]]
+	test_data.columns = ["author_id", "paper_id"]
+	test_data["paper_id"] = test_data["paper_id"].fillna(0).astype(int)
+	test_data.to_pickle("./pkl/test_base.pkl")
+
 
 if __name__ == "__main__": main()
 
